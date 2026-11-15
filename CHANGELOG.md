@@ -41,3 +41,9 @@
 ## V10.1 — Identificació visible de versió
 - Afegit el selector desplegable de versió al capçal del menú lateral, a la dreta d'«Espai de treball / Mercat».
 - La versió carregada actualment es mostra com a **V10**.
+
+
+## V10.2
+- Afegit indicador visible de versió al menú desplegable, a la dreta d'"Espai de treball / Mercat".
+- Versió actual: V10.2.
+- Actualitzada la clau del Service Worker per forçar renovació de caché.

@@ -1,0 +1,2427 @@
+<!DOCTYPE html>
+<html lang="ca" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Todavía · Market Manager</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Todavía Market">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ── THEMES ── */
+[data-theme="dark"]{
+  --bg:#0a0a0f;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;
+  --accent:#f0c040;--green:#3ecf8e;--blue:#4a9eff;--purple:#a78bfa;
+  --text:#f0ede8;--muted:#7a7a9a;--danger:#e05a30;--grid-line:rgba(240,192,64,0.03);
+}
+[data-theme="light"]{
+  --bg:#f5f4f0;--surface:#ffffff;--surface2:#f0ede8;--border:#ddd9d0;
+  --accent:#c8960a;--green:#1a9e68;--blue:#1a6fd4;--purple:#6d4fc2;
+  --text:#1a1814;--muted:#7a7060;--danger:#c0340a;--grid-line:rgba(0,0,0,0.04);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;transition:background 0.3s,color 0.3s;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+.wrapper{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:16px;}
+
+/* HEADER */
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:8px;display:grid;place-items:center;font-size:17px;flex-shrink:0;}
+#marketNameDisplay{font-size:1.15rem;font-weight:800;letter-spacing:-0.03em;cursor:pointer;border-bottom:1px dashed transparent;transition:border-color 0.2s;}
+#marketNameDisplay:hover{border-color:var(--accent);}
+.market-sub{font-size:0.58rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;font-family:'DM Mono',monospace;margin-top:2px;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.status-pill{display:flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:5px 11px;font-size:0.65rem;font-family:'DM Mono',monospace;color:var(--muted);}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);transition:background 0.3s;flex-shrink:0;}
+.status-dot.connected{background:var(--green);box-shadow:0 0 7px var(--green);}
+.status-dot.error{background:var(--danger);}
+.status-dot.syncing{animation:blink 1s infinite;background:var(--accent);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.theme-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:1rem;display:grid;place-items:center;transition:border-color 0.2s;flex-shrink:0;}
+.theme-btn:hover{border-color:var(--accent);}
+
+/* HAMBURGER */
+.hamburger{width:38px;height:38px;border-radius:9px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:border-color 0.2s;flex-shrink:0;}
+.hamburger:hover,.hamburger.open{border-color:var(--accent);}
+.ham-line{width:17px;height:2px;background:var(--text);border-radius:1px;transition:all 0.25s;}
+.hamburger.open .ham-line:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.hamburger.open .ham-line:nth-child(2){opacity:0;transform:scaleX(0);}
+.hamburger.open .ham-line:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+/* DRAWER */
+.drawer-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);z-index:50;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+.drawer-backdrop.open{opacity:1;pointer-events:all;}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:278px;background:var(--surface);border-left:1px solid var(--border);z-index:51;transform:translateX(100%);transition:transform 0.28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;}
+.drawer.open{transform:translateX(0);}
+.drawer-header{padding:20px 20px 16px;border-bottom:1px solid var(--border);}
+.drawer-sub{font-size:0.6rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:3px;}
+.drawer-market{font-size:1rem;font-weight:800;}
+.nav-scroll{flex:1;overflow-y:auto;padding:12px 0;}
+.nav-group{margin-bottom:4px;}
+.nav-group-label{font-size:0.56rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--muted);font-family:'DM Mono',monospace;padding:10px 20px 5px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;transition:background 0.15s;border-left:3px solid transparent;font-size:0.87rem;font-weight:600;}
+.nav-item:hover{background:var(--surface2);}
+.nav-item.active{background:rgba(240,192,64,0.07);border-left-color:var(--accent);color:var(--accent);}
+.nav-icon{font-size:1rem;width:22px;text-align:center;}
+.nav-label{flex:1;}
+.nav-badge{font-size:0.58rem;font-family:'DM Mono',monospace;background:var(--surface2);padding:2px 6px;border-radius:100px;color:var(--muted);}
+.nav-item.active .nav-badge{background:rgba(240,192,64,0.15);color:var(--accent);}
+.drawer-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:7px;}
+
+/* SHORTCUTS HINT */
+.kbd-hint{font-size:0.56rem;font-family:'DM Mono',monospace;color:var(--muted);text-align:center;padding:8px 0 2px;}
+.kbd{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 4px;font-size:0.58rem;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:600;font-size:0.77rem;cursor:pointer;border:none;transition:all 0.15s;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#000;}
+.btn-primary:hover{background:#ffd060;transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-danger{background:rgba(224,90,48,0.12);color:var(--danger);border:1px solid rgba(224,90,48,0.3);}
+.btn-danger:hover{background:rgba(224,90,48,0.22);}
+.btn-green{background:rgba(62,207,142,0.12);color:var(--green);border:1px solid rgba(62,207,142,0.3);}
+.btn-green:hover{background:rgba(62,207,142,0.22);}
+.btn-full{width:100%;justify-content:center;padding:10px;}
+.btn-purple{background:rgba(167,139,250,0.15);color:var(--purple);border:1px solid rgba(167,139,250,0.3);}
+.btn-purple:hover{background:rgba(167,139,250,0.25);}
+
+/* SECTION */
+.section{display:none;}
+.section.active{display:block;}
+.section-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.section-title{font-size:1rem;font-weight:800;letter-spacing:-0.02em;}
+.section-subtitle{font-size:0.62rem;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;}
+
+/* QUICK STATS */
+.quick-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;}
+@media(max-width:700px){.quick-stats{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:420px){.quick-stats{grid-template-columns:repeat(2,1fr);}}
+.qs-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:11px 13px;transition:border-color 0.2s;}
+.qs-card:hover{border-color:rgba(240,192,64,0.3);}
+.qs-label{font-size:0.56rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:3px;}
+.qs-value{font-size:1.35rem;font-weight:800;letter-spacing:-0.04em;line-height:1;color:var(--accent);}
+.qs-value.green{color:var(--green);}
+.qs-value.blue{color:var(--blue);}
+.qs-value.purple{color:var(--purple);}
+.qs-value.red{color:var(--danger);}
+.qs-sub{font-size:0.56rem;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;}
+.pb{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:5px;}
+.pb-fill{height:100%;border-radius:2px;transition:width 0.5s ease;}
+
+/* PANEL */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:12px;}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-bottom:1px solid var(--border);}
+.panel-title{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);}
+
+/* PRODUCT TILES */
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(115px,1fr));gap:7px;padding:10px;}
+.product-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 10px 7px;position:relative;cursor:pointer;user-select:none;transition:border-color 0.12s,transform 0.1s,background 0.12s;display:flex;flex-direction:column;gap:3px;}
+.product-card:hover{border-color:rgba(240,192,64,0.5);background:var(--surface);}
+.product-card:active{transform:scale(0.94);}
+.product-card.flash{animation:fg 0.35s ease;}
+.product-card.low-stock{border-color:rgba(240,192,64,0.6);}
+.product-card.out-stock{border-color:var(--danger);opacity:0.6;pointer-events:none;}
+@keyframes fg{0%{background:rgba(62,207,142,0.28);border-color:var(--green);}100%{background:var(--surface);border-color:var(--border);}}
+.p-emoji{font-size:1.45rem;line-height:1;}
+.p-name{font-size:0.73rem;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.p-pvp{font-size:0.58rem;font-family:'DM Mono',monospace;color:var(--accent);}
+.p-count{font-size:1.9rem;font-weight:800;letter-spacing:-0.05em;line-height:1;font-variant-numeric:tabular-nums;margin:3px 0 2px;}
+.p-actions{display:flex;align-items:center;justify-content:space-between;}
+.cnt-btn{width:23px;height:23px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:0.88rem;cursor:pointer;display:grid;place-items:center;transition:all 0.12s;font-family:'DM Mono',monospace;position:relative;z-index:2;}
+.cnt-btn:hover{border-color:var(--danger);color:var(--danger);}
+.cnt-btn:disabled{opacity:0.18;cursor:not-allowed;}
+.p-total{font-size:0.58rem;font-family:'DM Mono',monospace;color:var(--green);}
+.p-stock-badge{position:absolute;top:4px;right:24px;font-size:0.52rem;font-family:'DM Mono',monospace;background:rgba(240,192,64,0.15);color:var(--accent);padding:1px 4px;border-radius:3px;}
+.p-stock-badge.low{background:rgba(240,192,64,0.2);color:var(--accent);}
+.p-stock-badge.out{background:rgba(224,90,48,0.15);color:var(--danger);}
+.rm-btn{position:absolute;top:4px;right:4px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.68rem;padding:2px 3px;border-radius:3px;opacity:0;transition:opacity 0.15s;z-index:3;}
+.product-card:hover .rm-btn{opacity:1;}
+.rm-btn:hover{color:var(--danger);}
+.shortcut-key{position:absolute;bottom:4px;right:4px;font-size:0.5rem;font-family:'DM Mono',monospace;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:1px 3px;opacity:0.7;}
+
+/* PAYMENT METHOD ROW */
+.payment-row{display:flex;gap:6px;padding:8px 14px;background:var(--surface2);border-top:1px solid var(--border);flex-wrap:wrap;align-items:center;}
+.pay-label{font-size:0.6rem;font-family:'DM Mono',monospace;color:var(--muted);flex-shrink:0;}
+.pay-btns{display:flex;gap:5px;}
+.pay-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:0.72rem;font-family:'DM Mono',monospace;cursor:pointer;transition:all 0.15s;}
+.pay-btn.active-cash{background:rgba(62,207,142,0.15);border-color:var(--green);color:var(--green);}
+.pay-btn.active-card{background:rgba(74,158,255,0.15);border-color:var(--blue);color:var(--blue);}
+.pay-btn.active-bizum{background:rgba(167,139,250,0.15);border-color:var(--purple);color:var(--purple);}
+
+/* BIZUM INLINE */
+.bizum-venda{display:flex;align-items:center;gap:7px;padding:9px 14px;background:rgba(167,139,250,0.05);border-top:1px solid var(--border);flex-wrap:wrap;}
+.bizum-venda-label{font-size:0.62rem;font-family:'DM Mono',monospace;color:var(--purple);font-weight:600;flex-shrink:0;}
+.bizum-venda input{flex:1;min-width:80px;background:var(--surface);border:1px solid rgba(167,139,250,0.3);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.82rem;padding:5px 9px;outline:none;transition:border-color 0.15s;}
+.bizum-venda input:focus{border-color:var(--purple);}
+.bizum-venda-total{font-size:0.7rem;font-family:'DM Mono',monospace;color:var(--purple);font-weight:700;flex-shrink:0;}
+
+/* CAIXA ROW */
+.caixa-row{display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(62,207,142,0.04);border-top:1px solid var(--border);flex-wrap:wrap;}
+.caixa-label{font-size:0.6rem;font-family:'DM Mono',monospace;color:var(--green);flex-shrink:0;}
+.caixa-val{font-size:0.8rem;font-family:'DM Mono',monospace;font-weight:700;color:var(--green);}
+
+/* FIELD */
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:0.57rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-family:'DM Mono',monospace;}
+.field input,.field select,.field textarea{background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'Syne',sans-serif;font-size:0.79rem;padding:6px 9px;outline:none;transition:border-color 0.15s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted);}
+.field select option{background:var(--surface2);}
+.field textarea{resize:vertical;min-height:60px;}
+
+/* CATALOGUE */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;padding:10px;}
+.cat-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;transition:border-color 0.15s;}
+.cat-card:hover{border-color:rgba(240,192,64,0.3);}
+.cat-emoji{font-size:1.5rem;}
+.cat-info{flex:1;min-width:0;}
+.cat-name{font-size:0.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cat-prices{font-size:0.6rem;font-family:'DM Mono',monospace;color:var(--muted);margin-top:2px;}
+.cat-prices span{color:var(--accent);}
+.cat-margin{font-size:0.58rem;font-family:'DM Mono',monospace;color:var(--green);}
+.cat-stock{font-size:0.58rem;font-family:'DM Mono',monospace;color:var(--blue);margin-top:1px;}
+.cat-actions{display:flex;gap:4px;flex-shrink:0;}
+.icon-btn{width:27px;height:27px;border-radius:5px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;display:grid;place-items:center;font-size:0.82rem;transition:all 0.15s;}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent);}
+.icon-btn.del:hover{border-color:var(--danger);color:var(--danger);}
+.add-cat-form{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:7px;flex-wrap:wrap;align-items:flex-end;}
+.import-banner{background:rgba(74,158,255,0.07);border:1px solid rgba(74,158,255,0.2);border-radius:10px;padding:11px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.import-banner-text{flex:1;font-size:0.7rem;font-family:'DM Mono',monospace;color:var(--blue);}
+.import-banner-text strong{display:block;font-size:0.76rem;color:var(--text);margin-bottom:2px;}
+
+/* FINANCES */
+.fin-grid2{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+@media(max-width:700px){.fin-grid2{grid-template-columns:repeat(2,1fr);}}
+.fin-big{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.fin-big-label{font-size:0.57rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:4px;}
+.fin-big-val{font-size:1.7rem;font-weight:800;letter-spacing:-0.05em;line-height:1;}
+.fin-big-val.green{color:var(--green);}
+.fin-big-val.red{color:var(--danger);}
+.fin-big-val.accent{color:var(--accent);}
+.fin-big-val.blue{color:var(--blue);}
+.fin-big-sub{font-size:0.58rem;color:var(--muted);font-family:'DM Mono',monospace;margin-top:3px;}
+.fin-bk{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.fin-row{display:flex;justify-content:space-between;align-items:center;padding:9px 15px;border-bottom:1px solid var(--border);}
+.fin-row:last-child{border-bottom:none;}
+.fin-lbl{font-size:0.68rem;color:var(--muted);font-family:'DM Mono',monospace;}
+.fin-val{font-size:0.87rem;font-weight:700;font-family:'DM Mono',monospace;}
+.fin-val.green{color:var(--green);}
+.fin-val.red{color:var(--danger);}
+.fin-val.accent{color:var(--accent);}
+.fin-val.blue{color:var(--blue);}
+.fin-total{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:rgba(240,192,64,0.04);}
+.fin-total-lbl{font-size:0.82rem;font-weight:700;}
+.fin-total-val{font-size:1.4rem;font-weight:800;letter-spacing:-0.04em;font-family:'DM Mono',monospace;}
+.fin-total-val.green{color:var(--green);}
+.fin-total-val.red{color:var(--danger);}
+
+/* CHARTS */
+.chart-wrap{padding:14px;overflow-x:auto;}
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;min-width:200px;}
+.bar-item{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:40px;}
+.bar-fill{width:100%;border-radius:4px 4px 0 0;transition:height 0.5s ease;min-height:2px;cursor:pointer;position:relative;}
+.bar-fill:hover::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:3px 7px;font-size:0.62rem;font-family:'DM Mono',monospace;white-space:nowrap;margin-bottom:4px;z-index:10;}
+.bar-label{font-size:0.58rem;font-family:'DM Mono',monospace;color:var(--muted);text-align:center;word-break:break-all;}
+.bar-val{font-size:0.6rem;font-family:'DM Mono',monospace;color:var(--text);font-weight:600;}
+.pay-chart{display:flex;gap:10px;padding:14px;flex-wrap:wrap;align-items:center;}
+.pay-segment{display:flex;align-items:center;gap:6px;}
+.pay-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.pay-seg-label{font-size:0.68rem;font-family:'DM Mono',monospace;color:var(--muted);}
+.pay-seg-val{font-size:0.75rem;font-weight:700;font-family:'DM Mono',monospace;}
+.donut-wrap{display:flex;align-items:center;gap:16px;padding:14px;flex-wrap:wrap;}
+.donut-svg{flex-shrink:0;}
+
+/* PROD TABLE */
+.prod-tbl{width:100%;border-collapse:collapse;}
+.prod-tbl th{font-size:0.57rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-family:'DM Mono',monospace;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.prod-tbl td{font-size:0.74rem;padding:8px 12px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;}
+.prod-tbl tr:last-child td{border-bottom:none;}
+.prod-tbl tr:hover td{background:var(--surface2);}
+.td-name{font-family:'Syne',sans-serif!important;font-weight:600;font-size:0.77rem!important;}
+.td-g{color:var(--green);}
+.td-r{color:var(--danger);}
+.td-m{color:var(--muted);}
+
+/* HISTORIAL */
+.hist-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px 14px;margin-bottom:8px;cursor:pointer;transition:border-color 0.15s;}
+.hist-card:hover{border-color:rgba(240,192,64,0.4);}
+.hist-card-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.hist-market{font-weight:700;font-size:0.88rem;}
+.hist-date{font-size:0.62rem;font-family:'DM Mono',monospace;color:var(--muted);margin-top:1px;}
+.hist-net{font-size:1.1rem;font-weight:800;font-family:'DM Mono',monospace;}
+.hist-net.green{color:var(--green);}
+.hist-net.red{color:var(--danger);}
+.hist-stats{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap;}
+.hist-stat{font-size:0.62rem;font-family:'DM Mono',monospace;color:var(--muted);}
+.hist-stat span{color:var(--text);}
+.hist-note{font-size:0.65rem;font-family:'DM Mono',monospace;color:var(--muted);margin-top:6px;font-style:italic;}
+.hist-empty{padding:28px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.72rem;}
+
+/* BREAKEVEN */
+.breakeven-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
+.be-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:0.72rem;}
+.be-row:last-child{border-bottom:none;}
+.be-lbl{color:var(--muted);font-family:'DM Mono',monospace;}
+.be-val{font-weight:700;font-family:'DM Mono',monospace;}
+
+/* BIZUM */
+.biz-hero{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:20px;text-align:center;margin-bottom:12px;}
+.biz-year-tabs{display:flex;gap:6px;justify-content:center;margin-bottom:14px;flex-wrap:wrap;}
+.year-tab{padding:5px 12px;border-radius:100px;font-size:0.7rem;font-family:'DM Mono',monospace;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all 0.15s;}
+.year-tab.active{background:rgba(167,139,250,0.15);border-color:rgba(167,139,250,0.4);color:var(--purple);}
+.biz-amount{font-size:2.6rem;font-weight:800;letter-spacing:-0.05em;color:var(--purple);font-variant-numeric:tabular-nums;}
+.biz-sub{font-size:0.63rem;font-family:'DM Mono',monospace;color:var(--muted);margin-top:4px;}
+.biz-bar-wrap{margin:14px 0 6px;}
+.biz-bar-labels{display:flex;justify-content:space-between;font-size:0.57rem;font-family:'DM Mono',monospace;color:var(--muted);margin-top:3px;}
+.biz-warn{font-size:0.7rem;font-family:'DM Mono',monospace;padding:5px 12px;border-radius:7px;margin-top:8px;display:inline-block;}
+.biz-warn.ok{color:var(--green);background:rgba(62,207,142,0.08);}
+.biz-warn.warn{color:var(--accent);background:rgba(240,192,64,0.08);}
+.biz-warn.alert{color:var(--danger);background:rgba(224,90,48,0.1);}
+.biz-limits-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;}
+@media(max-width:560px){.biz-limits-grid{grid-template-columns:1fr;}}
+.biz-limit-card{border:1px solid var(--border);border-radius:10px;padding:11px;display:flex;align-items:center;gap:9px;}
+.blc-icon{font-size:1.2rem;flex-shrink:0;}
+.blc-info{flex:1;min-width:0;}
+.blc-label{font-size:0.57rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:2px;}
+.blc-val{font-size:0.92rem;font-weight:800;letter-spacing:-0.02em;line-height:1;}
+.blc-max{font-size:0.56rem;font-family:'DM Mono',monospace;color:var(--muted);margin-top:2px;}
+.blc-pct{font-size:0.9rem;font-weight:800;font-family:'DM Mono',monospace;flex-shrink:0;}
+.biz-history{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.biz-hist-row{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:0.74rem;}
+.biz-hist-row:last-child{border-bottom:none;}
+.biz-hist-date{font-family:'DM Mono',monospace;color:var(--muted);font-size:0.65rem;}
+.biz-hist-market{font-weight:600;}
+.biz-hist-amt{font-family:'DM Mono',monospace;color:var(--purple);font-weight:700;}
+.biz-note{font-size:0.6rem;font-family:'DM Mono',monospace;color:var(--muted);line-height:1.6;padding:10px 13px;background:rgba(167,139,250,0.05);border:1px solid rgba(167,139,250,0.15);border-radius:8px;margin-bottom:12px;}
+
+/* CONFIG */
+.cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:600px){.cfg-grid{grid-template-columns:1fr;}}
+.cfg-card{background:var(--surface);border:1px solid var(--border);border-radius:13px;overflow:hidden;}
+.cfg-card-hdr{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;}
+.cfg-card-icon{font-size:1rem;}
+.cfg-card-title{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);}
+.cfg-body{padding:13px 15px;display:flex;flex-direction:column;gap:10px;}
+.cfg-body .field input,.cfg-body .field select,.cfg-body .field textarea{width:100%;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:3px 0;}
+.toggle-label{font-size:0.76rem;}
+.tog{width:37px;height:20px;border-radius:10px;background:var(--border);border:none;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform 0.2s;}
+.tog.on{background:var(--green);}
+.tog.on::after{transform:translateX(17px);}
+.info-box{background:rgba(240,192,64,0.06);border:1px solid rgba(240,192,64,0.18);border-radius:8px;padding:11px;}
+.info-title{font-size:0.57rem;color:var(--accent);font-weight:700;font-family:'DM Mono',monospace;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.1em;}
+.info-box ol{font-size:0.6rem;color:var(--muted);font-family:'DM Mono',monospace;line-height:1.9;padding-left:13px;}
+.backup-row{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* LOG */
+.log-list{max-height:180px;overflow-y:auto;padding:7px;display:flex;flex-direction:column;gap:2px;}
+.log-list::-webkit-scrollbar{width:3px;}
+.log-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.log-entry{display:flex;gap:6px;padding:5px 7px;border-radius:5px;font-family:'DM Mono',monospace;font-size:0.62rem;background:var(--surface2);animation:sli 0.2s ease;}
+@keyframes sli{from{opacity:0;transform:translateX(4px)}to{opacity:1;transform:translateX(0)}}
+.log-entry.success{border-left:2px solid var(--green);}
+.log-entry.error{border-left:2px solid var(--danger);}
+.log-entry.info{border-left:2px solid var(--accent);}
+.log-time{color:var(--muted);flex-shrink:0;}
+
+/* MODAL */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);z-index:100;display:none;place-items:center;}
+.modal-backdrop.open{display:grid;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:20px;width:90%;max-width:460px;animation:mi 0.2s ease;max-height:90vh;overflow-y:auto;}
+@keyframes mi{from{opacity:0;transform:scale(0.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal h2{font-size:1rem;font-weight:800;margin-bottom:8px;}
+.modal p{font-size:0.72rem;color:var(--muted);margin-bottom:12px;line-height:1.6;font-family:'DM Mono',monospace;}
+.modal-actions{display:flex;gap:7px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap;}
+.modal .field{margin-bottom:8px;}
+.modal .field input,.modal .field select,.modal .field textarea{width:100%;}
+.cs-row{display:flex;justify-content:space-between;padding:6px 0;font-size:0.75rem;border-bottom:1px solid var(--border);}
+.cs-row:last-child{border-bottom:none;font-weight:700;}
+.cs-row span:last-child{font-family:'DM Mono',monospace;}
+.cs-wrap{background:var(--surface2);border-radius:9px;padding:10px;margin:8px 0;}
+.pay-split-row{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
+.pay-split-row:last-child{border-bottom:none;}
+.pay-split-label{flex:1;font-size:0.74rem;font-family:'DM Mono',monospace;}
+.pay-split-val{font-size:0.82rem;font-weight:700;font-family:'DM Mono',monospace;}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 14px;font-family:'DM Mono',monospace;font-size:0.74rem;z-index:200;animation:ti 0.25s ease;max-width:280px;}
+@keyframes bannerIn{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+#recoveryBanner{animation:bannerIn 0.35s cubic-bezier(.4,0,.2,1);}
+.autosync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 1.5s infinite;margin-right:4px;vertical-align:middle;}
+@keyframes ti{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.empty-state{padding:28px 12px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.7rem;grid-column:1/-1;}
+.empty-state .em{font-size:2rem;margin-bottom:7px;}
+.divider{height:1px;background:var(--border);margin:4px 0;}
+
+/* NOTES */
+.market-note-display{padding:10px 14px;font-size:0.72rem;font-family:'DM Mono',monospace;color:var(--muted);font-style:italic;border-top:1px solid var(--border);min-height:38px;}
+
+/* ── iOS SAFARI FIX ──
+   Safari no dispara click en divs sense cursor:pointer.
+   touch-action:manipulation elimina el delay de 300ms. */
+.nav-item,.product-card,.cat-card,.hist-card,.year-tab,
+.modal-backdrop,.drawer-backdrop,.hamburger,.theme-btn,
+.market-note-display,.import-banner{
+  cursor:pointer;
+  -webkit-tap-highlight-color:rgba(240,192,64,0.12);
+}
+button,.btn,.pay-btn,.icon-btn,.cnt-btn,.rm-btn,.tog,
+.nav-item,.product-card,.cat-card,.year-tab,.hist-card{
+  touch-action:manipulation;
+}
+
+/* nav-item as button (iOS fix) */
+button.nav-item{width:100%;text-align:left;background:none;border:none;font-family:'Syne',sans-serif;color:var(--text);}
+
+/* hamburger and marketNameDisplay as button (iOS fix) */
+button.hamburger{background:var(--surface2);padding:0;}
+button#marketNameDisplay{background:none;border:none;font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);padding:0;text-align:left;}
+button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
+</style>
+
+<style>
+.bm-tabs{display:flex;gap:6px;overflow:auto;padding:4px 0 12px;position:sticky;top:0;background:var(--bg);z-index:4}.bm-tabs button{white-space:nowrap;border:1px solid var(--border);background:var(--surface2);color:var(--muted);border-radius:9px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:.68rem}.bm-tabs button.active{background:var(--text);color:var(--bg);border-color:var(--text)}.bm-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.bm-kpis>div{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px}.bm-kpis b{display:block;font-size:1.15rem}.bm-kpis span{font-size:.65rem;color:var(--muted);font-family:'DM Mono',monospace}.table-scroll{overflow:auto}.item-card{border:1px solid var(--border);background:var(--surface2);border-radius:12px;padding:12px;margin-bottom:8px}.row{display:flex;gap:8px}.row>*{flex:1}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions .btn{flex:1;min-width:120px}@media(max-width:600px){.bm-kpis{grid-template-columns:repeat(2,1fr)}.row{flex-direction:column}.bm-tabs{margin-right:-2px}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🛒</div>
+    <div>
+      <button type="button" id="marketNameDisplay" onclick="goSection('config')" title="Configuració">Mercat</button>
+      <div class="market-sub" id="marketDateDisplay">— configura el mercat —</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="status-pill">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Sense configurar</span>
+    </div>
+    <div class="status-pill" id="backupPill" title="Sense backup" style="padding:5px 8px;gap:3px;">
+      <span id="backupIcon">💾</span>
+      <div id="backupDot" style="width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0;"></div>
+    </div>
+    <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="Mode llum/fosc">🌙</button>
+    <button type="button" class="hamburger" id="hamburgerBtn" onclick="toggleDrawer()" aria-label="Menú">
+      <div class="ham-line"></div><div class="ham-line"></div><div class="ham-line"></div>
+    </button>
+  </div>
+</header>
+
+<!-- DRAWER -->
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()" role="button" tabindex="-1"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;">
+      <div style="min-width:0;">
+        <div class="drawer-sub">Espai de treball</div>
+        <div class="drawer-market" id="drawerMarketName">Mercat</div>
+      </div>
+      <label style="display:flex;align-items:center;gap:5px;flex-shrink:0;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);" title="Versió de l'aplicació">
+        <span>Versió</span>
+        <select id="appVersionSelect" aria-label="Versió de l'aplicació" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:5px 6px;font-family:'DM Mono',monospace;font-size:.62rem;max-width:76px;">
+          <option value="V10" selected>V10</option>
+        </select>
+      </label>
+    </div>
+  </div>
+  <div class="nav-scroll">
+    <div class="nav-group">
+      <div class="nav-group-label">Operació</div>
+      <button type="button" class="nav-item active" id="nav-venda" onclick="goSection('venda')">
+        <span class="nav-icon">🏪</span><span class="nav-label">Venda</span>
+        <span class="nav-badge" id="nb-venda">0 ud</span>
+      </button>
+      <button type="button" class="nav-item" id="nav-finances" onclick="goSection('finances')">
+        <span class="nav-icon">💶</span><span class="nav-label">Finances & Anàlisi</span>
+        <span class="nav-badge" id="nb-finances">0€</span>
+      </button>
+      <button type="button" class="nav-item" id="nav-historial" onclick="goSection('historial')">
+        <span class="nav-icon">📈</span><span class="nav-label">Historial</span>
+        <span class="nav-badge" id="nb-historial">0</span>
+      </button>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Gestió</div>
+      <button type="button" class="nav-item" id="nav-bizum" onclick="goSection('bizum')">
+        <span class="nav-icon">📱</span><span class="nav-label">Control Bizum</span>
+        <span class="nav-badge" id="nb-bizum">0€</span>
+      </button>
+      <button type="button" class="nav-item" id="nav-cataleg" onclick="goSection('cataleg')">
+        <span class="nav-icon">📦</span><span class="nav-label">Catàleg</span>
+        <span class="nav-badge" id="nb-cataleg">0</span>
+      </button>
+      <button type="button" class="nav-item" id="nav-config" onclick="goSection('config')">
+        <span class="nav-icon">⚙</span><span class="nav-label">Configuració</span>
+      </button>
+    </div>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn btn-primary btn-full" onclick="syncNow(false);closeDrawer();">↑ Sincronitzar Sheets</button>
+    <button class="btn btn-green btn-full" onclick="openCloseMarket();closeDrawer();">✓ Tancar mercat</button>
+    <div class="kbd-hint">Dreceres: <span class="kbd">1</span>–<span class="kbd">9</span> vendes · <span class="kbd">B</span> Bizum · <span class="kbd">Esc</span> tanca</div>
+  </div>
+</div>
+
+<!-- ═══════ VENDA ═══════ -->
+<div class="section active" id="section-venda">
+  <div class="quick-stats">
+    <div class="qs-card">
+      <div class="qs-label">Vendes avui</div>
+      <div class="qs-value" id="qs-units">0</div>
+      <div class="qs-sub">unitats</div>
+    </div>
+    <div class="qs-card">
+      <div class="qs-label">Ingressos</div>
+      <div class="qs-value" id="qs-gross">0€</div>
+      <div class="qs-sub">bruts PVP</div>
+      <div class="pb"><div class="pb-fill" id="pb-obj" style="width:0%;background:var(--blue)"></div></div>
+    </div>
+    <div class="qs-card">
+      <div class="qs-label">Ticket mitjà</div>
+      <div class="qs-value blue" id="qs-ticket">—</div>
+      <div class="qs-sub">per transacció</div>
+    </div>
+    <div class="qs-card">
+      <div class="qs-label">Bizum avui</div>
+      <div class="qs-value purple" id="qs-bizum">0€</div>
+      <div class="qs-sub" id="qs-bizum-sub">any actual</div>
+    </div>
+    <div class="qs-card">
+      <div class="qs-label">Caixa</div>
+      <div class="qs-value green" id="qs-caixa">0€</div>
+      <div class="qs-sub">efectiu esperat</div>
+    </div>
+    <div class="qs-card">
+      <div class="qs-label">Última sync</div>
+      <div class="qs-value blue" style="font-size:1rem" id="qs-sync">—</div>
+      <div class="qs-sub">Google Sheets</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Productes actius</span>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost" onclick="goSection('cataleg')" style="font-size:0.68rem;padding:4px 8px">+ Catàleg</button>
+        <button class="btn btn-danger" onclick="resetAll()" style="font-size:0.68rem;padding:4px 8px">↺ Reset</button>
+      </div>
+    </div>
+    <div class="products-grid" id="productsGrid">
+      <div class="empty-state"><div class="em">📦</div>Activa productes al Catàleg</div>
+    </div>
+    <!-- Payment method selector -->
+    <div class="payment-row">
+      <span class="pay-label">Mètode:</span>
+      <div class="pay-btns">
+        <button class="pay-btn active-cash" id="pay-cash" onclick="setPayMethod('cash')">💵 Efectiu</button>
+        <button class="pay-btn" id="pay-card" onclick="setPayMethod('card')">💳 Targeta</button>
+        <button class="pay-btn" id="pay-bizum-q" onclick="setPayMethod('bizum')">📱 Bizum</button>
+      </div>
+    </div>
+    <!-- Bizum inline -->
+    <div class="bizum-venda">
+      <span class="bizum-venda-label">📱 Bizum rebut</span>
+      <input type="number" id="bizumVendaInput" placeholder="Import €" step="0.01" min="0.5" onkeydown="if(event.key==='Enter'){addBizumVenda();event.preventDefault();}">
+      <button class="btn btn-purple" style="padding:5px 10px;font-size:0.73rem;" onclick="addBizumVenda()">+ Afegir</button>
+      <button class="btn btn-ghost" style="padding:5px 8px;font-size:0.73rem;" onclick="subBizumVenda()">−</button>
+      <span class="bizum-venda-total" id="bizumVendaTotal">0,00€ any</span>
+    </div>
+    <!-- Caixa row -->
+    <div class="caixa-row">
+      <span class="caixa-label">🟢 Efectiu esperat a caixa:</span>
+      <span class="caixa-val" id="caixaVal">0,00 €</span>
+      <span style="font-size:0.58rem;font-family:'DM Mono',monospace;color:var(--muted);margin-left:8px;" id="caixaDetail"></span>
+    </div>
+    <!-- Notes -->
+    <div class="market-note-display" id="noteDisplay" onclick="openNoteModal()" title="Clica per editar notes">
+      📝 Notes del mercat — clica per editar
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Registre</span>
+      <button class="btn btn-ghost" onclick="clearLog()" style="font-size:0.62rem;padding:3px 7px">Netejar</button>
+    </div>
+    <div class="log-list" id="logList">
+      <div class="log-entry info"><span class="log-time">—</span><span> Sistema iniciat. Dreceres: 1–9 venen producte, B obre Bizum.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ FINANCES ═══════ -->
+<div class="section" id="section-finances">
+  <div class="section-header">
+    <div><div class="section-title">💶 Finances & Anàlisi</div><div class="section-subtitle">Resum econòmic en temps real</div></div>
+  </div>
+
+  <div class="fin-grid2">
+    <div class="fin-big"><div class="fin-big-label">Ingressos bruts</div><div class="fin-big-val accent" id="fin-big-gross">0,00 €</div><div class="fin-big-sub">PVP × unitats</div></div>
+    <div class="fin-big"><div class="fin-big-label">Guany net</div><div class="fin-big-val green" id="fin-big-net">0,00 €</div><div class="fin-big-sub">brut − tots costos</div></div>
+    <div class="fin-big"><div class="fin-big-label">Ticket mitjà</div><div class="fin-big-val blue" id="fin-big-ticket">—</div><div class="fin-big-sub">per transacció</div></div>
+    <div class="fin-big"><div class="fin-big-label">Marge net</div><div class="fin-big-val" id="fin-big-margin" style="color:var(--muted)">0%</div><div class="fin-big-sub">sobre ingressos</div></div>
+  </div>
+
+  <!-- Breakdown costos -->
+  <div class="fin-bk" style="margin-bottom:12px;">
+    <div class="fin-row"><span class="fin-lbl">Ingressos bruts</span><span class="fin-val accent" id="fin-gross">0,00 €</span></div>
+    <div class="fin-row"><span class="fin-lbl">− Cost productes</span><span class="fin-val red" id="fin-prodcost">0,00 €</span></div>
+    <div class="fin-row"><span class="fin-lbl">− Cost mercat</span><span class="fin-val red" id="fin-mktcost">0,00 €</span></div>
+    <div class="fin-row"><span class="fin-lbl">− Desplaçament</span><span class="fin-val red" id="fin-travel">0,00 €</span></div>
+    <div class="divider"></div>
+    <div class="fin-total"><span class="fin-total-lbl">GUANY NET</span><span class="fin-total-val green" id="fin-net">0,00 €</span></div>
+  </div>
+
+  <!-- Mètodes de pagament -->
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Mètodes de pagament</span></div>
+    <div class="pay-chart" id="payChart"></div>
+  </div>
+
+  <!-- Break-even -->
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">📍 Punt d'equilibri (Break-even)</span></div>
+    <div class="breakeven-card" id="breakevenCard"></div>
+  </div>
+
+  <!-- Gràfic vendes per producte -->
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">📊 Vendes per producte</span></div>
+    <div class="chart-wrap"><div class="bar-chart" id="salesChart"></div></div>
+  </div>
+
+  <!-- Per-product table -->
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Detall per producte</span></div>
+    <div style="overflow-x:auto">
+      <table class="prod-tbl">
+        <thead><tr><th>Producte</th><th>Ud</th><th>Stock</th><th>PVP</th><th>Cost</th><th>Ingressos</th><th>Benefici</th><th>Marge</th></tr></thead>
+        <tbody id="prod-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Gràfic ingressos per mètode pagament -->
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">💵 Ingressos per mètode de pagament</span></div>
+    <div id="payDonut"></div>
+  </div>
+</div>
+
+<!-- ═══════ HISTORIAL ═══════ -->
+<div class="section" id="section-historial">
+  <div class="section-header">
+    <div><div class="section-title">📈 Historial de mercats</div><div class="section-subtitle">Tots els mercats tancats</div></div>
+    <button class="btn btn-ghost" style="font-size:0.72rem" onclick="exportCSV()">↓ CSV</button>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="fin-grid2" id="hist-summary" style="margin-bottom:14px;"></div>
+
+  <!-- Comparativa chart -->
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">📊 Comparativa guany net per mercat</span></div>
+    <div class="chart-wrap"><div class="bar-chart" id="histChart"></div></div>
+  </div>
+
+  <!-- Rànquing productes anual -->
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">🏆 Rànquing de productes (acumulat)</span></div>
+    <div style="overflow-x:auto">
+      <table class="prod-tbl">
+        <thead><tr><th>#</th><th>Producte</th><th>Ud venudes</th><th>Ingressos</th><th>Benefici</th></tr></thead>
+        <tbody id="rank-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Cards per mercat -->
+  <div id="histList"></div>
+</div>
+
+<!-- ═══════ BIZUM ═══════ -->
+<div class="section" id="section-bizum">
+  <div class="section-header">
+    <div><div class="section-title">📱 Control Bizum</div><div class="section-subtitle">Límits legals i historial anual</div></div>
+  </div>
+
+  <div class="biz-hero">
+    <div class="fin-big-label" style="margin-bottom:8px;">Total Bizum any actiu</div>
+    <div class="biz-year-tabs" id="bizYearTabs"></div>
+    <div class="biz-amount" id="biz-amount">0,00 €</div>
+    <div class="biz-sub" id="biz-sub">any · de 2.500€ límit legal</div>
+    <div class="biz-bar-wrap">
+      <div class="pb" style="height:8px"><div class="pb-fill" id="biz-bar" style="width:0%;background:var(--purple)"></div></div>
+      <div class="biz-bar-labels"><span>0€</span><span id="biz-pct">0%</span><span>2.500€</span></div>
+    </div>
+    <div class="biz-warn ok" id="biz-warn">✓ Dins del límit legal</div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Límits legals</span></div>
+    <div id="biz-limits-wrap"></div>
+  </div>
+
+  <div class="biz-history panel">
+    <div class="panel-header"><span class="panel-title">Historial per mercat</span></div>
+    <div id="biz-hist-list"></div>
+  </div>
+
+  <div class="biz-note">
+    ⚠ Límit Bizum per a particulars a Espanya: <strong>2.500€/any natural</strong>. Superar-lo comporta obligació de declarar a Hisenda (IRPF). El comptador es reinicia cada any natural (1 de gener). Les dades s'emmagatzemen localment de forma acumulativa.
+  </div>
+</div>
+
+<!-- ═══════ CATÀLEG ═══════ -->
+<div class="section" id="section-cataleg">
+  <div class="section-header">
+    <div><div class="section-title">📦 Catàleg de productes</div><div class="section-subtitle">Gestiona tots els articles. ✓ = actiu al mercat.</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+    <div class="import-banner" style="margin-bottom:0">
+      <span style="font-size:1.2rem">📥</span>
+      <div class="import-banner-text">
+        <strong>Importar des de Sheets</strong>
+        Llegeix el full "Catàleg" i afegeix els productes nous
+      </div>
+      <button class="btn btn-ghost" style="font-size:0.7rem;flex-shrink:0" onclick="importFromSheets()">↓ Importar</button>
+    </div>
+    <div class="import-banner" style="margin-bottom:0;background:rgba(62,207,142,0.07);border-color:rgba(62,207,142,0.2);">
+      <span style="font-size:1.2rem">📤</span>
+      <div class="import-banner-text" style="color:var(--green)">
+        <strong style="color:var(--text)">Exportar a Sheets</strong>
+        Envia tot el catàleg al full "Catàleg" de Google Sheets
+      </div>
+      <button class="btn btn-green" style="font-size:0.7rem;flex-shrink:0" onclick="exportCatalogueToSheets()">↑ Exportar</button>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Articles (<span id="cat-count">0</span>)</span>
+    </div>
+    <div class="cat-grid" id="catGrid">
+      <div class="empty-state" style="grid-column:1/-1"><div class="em">📦</div>Afegeix productes al catàleg</div>
+    </div>
+    <div class="add-cat-form">
+      <div class="field"><label>Emoji</label><input type="text" id="newEmoji" placeholder="🍎" maxlength="2" style="width:44px;text-align:center;font-size:1rem"></div>
+      <div class="field" style="flex:1;min-width:90px"><label>Nom</label><input type="text" id="newName" placeholder="Nom del producte"></div>
+      <div class="field"><label>Cost €</label><input type="number" id="newCost" placeholder="0.50" step="0.01" min="0" style="width:62px"></div>
+      <div class="field"><label>PVP €</label><input type="number" id="newPvp" placeholder="1.50" step="0.01" min="0" style="width:62px"></div>
+      <div class="field"><label>Stock</label><input type="number" id="newStock" placeholder="∞" step="1" min="0" style="width:56px"></div>
+      <button class="btn btn-primary" onclick="addProduct()">+ Afegir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ CONFIG ═══════ -->
+<div class="section" id="section-config">
+  <div class="section-header">
+    <div><div class="section-title">⚙ Configuració</div><div class="section-subtitle">Mercat i Google Sheets</div></div>
+    <button class="btn btn-primary" onclick="saveAllConfig()">Guardar tot</button>
+  </div>
+  <div class="cfg-grid">
+    <div class="cfg-card">
+      <div class="cfg-card-hdr"><span class="cfg-card-icon">🛒</span><span class="cfg-card-title">Mercat</span></div>
+      <div class="cfg-body">
+        <div class="field"><label>Nom del mercat</label><input type="text" id="cfgName" placeholder="Mercat de Santa Caterina"></div>
+        <div class="field"><label>Data</label><input type="date" id="cfgDate"></div>
+        <div class="field"><label>Durada (hores)</label><input type="number" id="cfgHours" placeholder="6" step="0.5" min="0"></div>
+        <div class="field"><label>Objectiu d'ingressos (€)</label><input type="number" id="cfgObj" placeholder="200" step="1" min="0"></div>
+        <div class="field"><label>Efectiu inicial a caixa (€)</label><input type="number" id="cfgCaixa" placeholder="50" step="5" min="0"></div>
+        <div class="toggle-row"><span class="toggle-label">Mercat de pagament</span><button class="tog" id="togPaid" onclick="togglePaid()"></button></div>
+        <div class="field" id="feeField" style="display:none"><label>Cost del mercat (€)</label><input type="number" id="cfgFee" placeholder="25" step="0.5" min="0"></div>
+        <div class="field"><label>Cost de desplaçament (€)</label><input type="number" id="cfgTravel" placeholder="10" step="0.5" min="0"></div>
+        <div class="field"><label>Notes del mercat</label><textarea id="cfgNotes" placeholder="Observacions, ubicació, condicions..."></textarea></div>
+      </div>
+    </div>
+    <div class="cfg-card">
+      <div class="cfg-card-hdr"><span class="cfg-card-icon">📊</span><span class="cfg-card-title">Google Sheets</span></div>
+      <div class="cfg-body">
+        <div class="field"><label>URL del Web App Script</label><input type="text" id="cfgScript" placeholder="https://script.google.com/macros/s/..."></div>
+        <div class="field"><label>Nom del full de vendes</label><input type="text" id="cfgSheet" value="Vendes"></div>
+        <div class="field"><label>Nom d’aquest dispositiu</label><input type="text" id="cfgDeviceName" placeholder="iPhone Andreu"></div>
+        <div class="info-box">
+          <div class="info-title">📋 Com configurar</div>
+          <ol><li>Google Sheets → Extensiones → Apps Script</li><li>Enganxa el codi del fitxer Apps Script</li><li>Implementar → Nova implementació → App web</li><li>Accés: "Qualsevol persona" → Implementar</li><li>Copia la URL i enganxa-la aquí dalt</li></ol>
+        </div>
+        <button class="btn btn-ghost" onclick="testSync()" style="width:100%;justify-content:center">↑ Provar connexió</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BACKUP PANEL — sempre visible a Config -->
+  <div class="panel" style="margin-top:4px;">
+    <div class="panel-header">
+      <span class="panel-title">💾 Còpies de seguretat locals (3 slots rotatius)</span>
+      <span id="backupPillConfig" style="font-size:0.65rem;font-family:'DM Mono',monospace;color:var(--muted);"></span>
+    </div>
+    <div id="backupList" style="padding:4px 14px 8px;min-height:50px;"></div>
+    <div style="padding:0 14px 14px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-ghost" onclick="exportBackup()" style="flex:1;justify-content:center;font-size:0.75rem;">↓ Exportar tot (JSON)</button>
+      <label class="btn btn-ghost" style="flex:1;justify-content:center;cursor:pointer;font-size:0.75rem;">↑ Restaurar fitxer<input type="file" accept=".json" onchange="importBackup(event)" style="display:none"></label>
+    </div>
+  </div>
+  <div class="panel" style="border-color:rgba(224,90,48,0.2);margin-top:4px">
+    <div class="panel-header"><span class="panel-title" style="color:var(--danger)">Zona de perill</span></div>
+    <div style="padding:12px 14px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-danger" onclick="resetAll()">↺ Reset comptadors</button>
+      <button class="btn btn-danger" onclick="confirmDeleteProducts()">🗑 Eliminar catàleg</button>
+      <button class="btn btn-danger" onclick="confirmResetBizum()">📱 Reset Bizum any</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrapper -->
+
+<!-- MODALS -->
+<div class="modal-backdrop" id="resetModal">
+  <div class="modal"><h2>↺ Reset del dia</h2><p>Posarà a 0 els comptadors de vendes. Bizum del dia no es toca. Catàleg i config es conserven.</p>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('resetModal')">Cancel·lar</button><button class="btn btn-danger" onclick="confirmReset()">Sí, resetear</button></div></div>
+</div>
+<div class="modal-backdrop" id="delProductsModal">
+  <div class="modal"><h2>🗑 Eliminar catàleg</h2><p>Eliminarà tots els productes. Vols continuar?</p>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('delProductsModal')">Cancel·lar</button><button class="btn btn-danger" onclick="deleteAllProducts()">Sí, eliminar</button></div></div>
+</div>
+<div class="modal-backdrop" id="resetBizumModal">
+  <div class="modal"><h2>📱 Resetear Bizum</h2><p>Posarà a 0 el Bizum de l'any actual. L'historial d'anys anteriors es conserva.</p>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('resetBizumModal')">Cancel·lar</button><button class="btn btn-danger" onclick="doResetBizum()">Sí, resetear</button></div></div>
+</div>
+<div class="modal-backdrop" id="editProductModal">
+  <div class="modal"><h2>✏ Editar producte</h2>
+  <input type="hidden" id="editId">
+  <div class="field" style="margin-bottom:8px"><label>Emoji</label><input type="text" id="editEmoji" maxlength="2" style="width:50px;text-align:center;font-size:1rem"></div>
+  <div class="field" style="margin-bottom:8px"><label>Nom</label><input type="text" id="editName"></div>
+  <div style="display:flex;gap:8px">
+    <div class="field" style="flex:1;margin-bottom:8px"><label>Cost €</label><input type="number" id="editCost" step="0.01" min="0"></div>
+    <div class="field" style="flex:1;margin-bottom:8px"><label>PVP €</label><input type="number" id="editPvp" step="0.01" min="0"></div>
+    <div class="field" style="flex:1;margin-bottom:8px"><label>Stock inicial</label><input type="number" id="editStock" step="1" min="0" placeholder="∞"></div>
+  </div>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('editProductModal')">Cancel·lar</button><button class="btn btn-primary" onclick="saveEditProduct()">Guardar</button></div>
+  </div>
+</div>
+<div class="modal-backdrop" id="noteModal">
+  <div class="modal"><h2>📝 Notes del mercat</h2>
+  <div class="field"><label>Observacions</label><textarea id="noteInput" placeholder="Condicions, ubicació, observacions..." style="min-height:100px"></textarea></div>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('noteModal')">Cancel·lar</button><button class="btn btn-primary" onclick="saveNote()">Guardar</button></div>
+  </div>
+</div>
+<div class="modal-backdrop" id="closeMarketModal">
+  <div class="modal"><h2>✓ Tancar mercat</h2>
+  <p>Resum final. S'enviarà tot a Google Sheets i es guardarà a l'historial local.</p>
+  <div class="cs-wrap" id="closeSummary"></div>
+  <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('closeMarketModal')">Cancel·lar</button><button class="btn btn-primary" onclick="closeMarketConfirm()">Enviar a Sheets i tancar</button></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ══════════════════════════════════════════════════
+//  CONSTANTS
+// ══════════════════════════════════════════════════
+const DEFAULT_SCRIPT = 'https://script.google.com/macros/s/AKfycbwLiJec2ANT3Lc4ep6anLkV8cDcIW4K5HXhCyYrTY60iQyCJtX6fhAqyioGjhUkSUk_Mg/exec';
+const BIZ_ANNUAL  = 2500;
+const BIZ_DAY     = 2000;
+const BIZ_OP_MIN  = 0.50;
+const BIZ_OP_MAX  = 1000;
+const BIZ_OPS_MO  = 60;
+const LOW_STOCK_PCT = 0.2; // warn when stock ≤ 20% of initial
+
+// ── SAFETY & AUTO-SYNC ──
+const AUTO_SYNC_SALES    = 5;    // sincronitza cada N vendes
+const AUTO_SYNC_MINUTES  = 5;    // sincronitza cada N minuts
+const AUTOSAVE_INTERVAL  = 30;   // auto-save local cada N segons
+
+let catalogue  = [];
+let market     = {name:'Mercat',date:'',hours:0,objective:0,paid:false,fee:0,travel:0,notes:'',caixaInicial:0};
+let settings   = {scriptUrl:DEFAULT_SCRIPT,sheetName:'Vendes'};
+let bizumYears = {};
+let bizumDay   = 0;    // Bizum cobrat en el mercat actual (sessió)
+let historial  = [];
+let payMethod  = 'cash';
+let payTotals  = {cash:0,card:0,bizum:0};
+let transactions = 0;
+let transactionLog = []; // moviment real de cobrament: permet corregir sense assumir el mètode actual
+let pendingSyncs = [];   // cua offline: mai perdem una sincronització per falta de cobertura
+let deviceId = localStorage.getItem('mkt_v7_deviceId') || (crypto.randomUUID ? crypto.randomUUID() : 'dev-'+Date.now());
+let deviceName = localStorage.getItem('mkt_v7_deviceName') || ('iPhone · '+deviceId.slice(-4));
+localStorage.setItem('mkt_v7_deviceId', deviceId);
+let currentSection = 'venda';
+let selectedBizumYear = new Date().getFullYear();
+let darkMode = true;
+
+// Auto-sync tracking
+let salesSinceLastSync = 0;   // vendes des de la darrera sync
+let lastAutoSync       = 0;   // timestamp de la darrera auto-sync
+
+// ══════════════════════════════════════════════════
+//  PERSISTENCE — 5 CAPES DE SEGURETAT
+// ══════════════════════════════════════════════════
+
+// Claus localStorage
+const LS = {
+  cat:'mkt_v5_cat', mkt:'mkt_v5_mkt', cfg:'mkt_v5_cfg',
+  biz:'mkt_v5_biz', bizd:'mkt_v5_bizd', hist:'mkt_v5_hist',
+  pay:'mkt_v5_pay', txn:'mkt_v5_txn', dark:'mkt_v5_dark',
+  session:'mkt_v5_session', // snapshot de sessió activa
+  txlog:'mkt_v7_txlog', pending:'mkt_v7_pending', deviceName:'mkt_v7_deviceName',
+};
+
+// ── CAPA 1: save() agressiu — cada acció + interval ──
+function save(){
+  try{
+    const now = Date.now();
+    localStorage.setItem(LS.cat,  JSON.stringify(catalogue));
+    localStorage.setItem(LS.mkt,  JSON.stringify(market));
+    localStorage.setItem(LS.cfg,  JSON.stringify(settings));
+    localStorage.setItem(LS.biz,  JSON.stringify(bizumYears));
+    localStorage.setItem(LS.bizd, bizumDay.toString());
+    localStorage.setItem(LS.hist, JSON.stringify(historial));
+    localStorage.setItem(LS.pay,  JSON.stringify(payTotals));
+    localStorage.setItem(LS.txn,  transactions);
+    localStorage.setItem(LS.txlog, JSON.stringify(transactionLog));
+    localStorage.setItem(LS.pending, JSON.stringify(pendingSyncs));
+    localStorage.setItem(LS.dark, darkMode?'1':'0');
+
+    // ── CAPA 2: sessionStorage com a còpia de seguretat secundària ──
+    // sessionStorage sobreviu a recàrregues però és independent del localStorage
+    const snapshot = {
+      ts: now,
+      catalogue, market, payTotals, transactions, bizumDay,
+    };
+    sessionStorage.setItem('mkt_snapshot', JSON.stringify(snapshot));
+
+    // Marcar sessió activa (per detectar interrupcions)
+    localStorage.setItem(LS.session, JSON.stringify({
+      ts: now,
+      active: true,
+      units: catalogue.filter(p=>p.active).reduce((s,p)=>s+p.count,0),
+      gross: catalogue.filter(p=>p.active).reduce((s,p)=>s+p.count*p.pvp,0).toFixed(2),
+      market: market.name,
+      date: market.date,
+    }));
+  }catch(e){
+    console.warn('save error:',e);
+    // Si localStorage falla (quota o privat), intentar sessionStorage
+    try{
+      sessionStorage.setItem('mkt_emergency',JSON.stringify({catalogue,payTotals,transactions,bizumDay,ts:Date.now()}));
+    }catch(e2){}
+  }
+}
+
+// ── CAPA 1b: interval de save automàtic cada 30 seg ──
+setInterval(()=>{ try{ save(); } catch(e){} }, AUTOSAVE_INTERVAL * 1000);
+
+// ── CAPA 1c: guardar en perdre el focus (canvi de pestanya, bloqueig pantalla) ──
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden') save();
+});
+window.addEventListener('pagehide', save);
+window.addEventListener('beforeunload', save);
+
+function load(){
+  try{
+    const c=localStorage.getItem(LS.cat);   if(c) catalogue  =JSON.parse(c);
+    const m=localStorage.getItem(LS.mkt);   if(m) market     =Object.assign({name:'Mercat',date:'',hours:0,objective:0,paid:false,fee:0,travel:0,notes:'',caixaInicial:0},JSON.parse(m));
+    const s=localStorage.getItem(LS.cfg);   if(s) settings   =Object.assign({scriptUrl:'',sheetName:'Vendes'},JSON.parse(s));
+    const b=localStorage.getItem(LS.biz);   if(b) bizumYears =JSON.parse(b);
+    const bd=localStorage.getItem(LS.bizd); if(bd) bizumDay  =parseFloat(bd)||0;
+    const h=localStorage.getItem(LS.hist);  if(h) historial  =JSON.parse(h);
+    const p=localStorage.getItem(LS.pay);   if(p) payTotals  =JSON.parse(p);
+    const t=localStorage.getItem(LS.txn);   if(t) transactions=parseInt(t)||0;
+    const tl=localStorage.getItem(LS.txlog); if(tl) transactionLog=JSON.parse(tl);
+    const ps=localStorage.getItem(LS.pending); if(ps) pendingSyncs=JSON.parse(ps);
+    const dn=localStorage.getItem(LS.deviceName); if(dn) deviceName=dn;
+    const d=localStorage.getItem(LS.dark);  if(d!==null) darkMode=(d==='1');
+    if(!settings.scriptUrl) settings.scriptUrl=DEFAULT_SCRIPT;
+    // migrate v4 data
+    const v4c=localStorage.getItem('mkt_v4_catalogue');
+    if(v4c&&!catalogue.length){
+      catalogue=JSON.parse(v4c).map(p=>({...p,stock:null,stockInitial:null}));
+      const v4h=localStorage.getItem('mkt_v4_market'); if(v4h) market=Object.assign(market,JSON.parse(v4h));
+      const v4b=localStorage.getItem('mkt_v4_bizumYears'); if(v4b) bizumYears=JSON.parse(v4b);
+      save();
+    }
+  }catch(e){console.warn('load error:',e);}
+}
+
+// ── CAPA 2b: recuperació des de sessionStorage si localStorage és buit ──
+function recoverFromSession(){
+  try{
+    const snap=sessionStorage.getItem('mkt_snapshot');
+    if(!snap) return false;
+    const d=JSON.parse(snap);
+    const ageMin=(Date.now()-d.ts)/60000;
+    if(ageMin>480) return false; // no recuperar si té >8 hores
+    // Només recupera si els comptadors locals estan a 0 però el snapshot tenia vendes
+    const localUnits=catalogue.filter(p=>p.active).reduce((s,p)=>s+p.count,0);
+    const snapUnits=(d.catalogue||[]).filter(p=>p.active).reduce((s,p)=>s+p.count,0);
+    if(localUnits===0 && snapUnits>0){
+      catalogue=d.catalogue;
+      if(d.payTotals) payTotals=d.payTotals;
+      if(d.transactions!==undefined) transactions=d.transactions;
+      if(d.bizumDay!==undefined) bizumDay=d.bizumDay;
+      save();
+      return snapUnits;
+    }
+  }catch(e){}
+  return false;
+}
+
+// ── CAPA 4: Detectar sessió interrompuda en obrir ──
+function checkInterruptedSession(){
+  try{
+    const raw=localStorage.getItem(LS.session);
+    if(!raw) return;
+    const sess=JSON.parse(raw);
+    if(!sess.active) return;
+    const ageMin=(Date.now()-sess.ts)/60000;
+    if(ageMin<1) return; // acabada de guardar, no és interrupció
+    if(ageMin>480) return; // >8h, ignorar
+    if(parseInt(sess.units)===0) return; // no hi havia vendes, no cal avisar
+    showRecoveryBanner(sess);
+  }catch(e){}
+}
+
+function showRecoveryBanner(sess){
+  const ageText=sess.ts?new Date(sess.ts).toLocaleTimeString('ca-ES',{hour:'2-digit',minute:'2-digit'}):'?';
+  const banner=document.createElement('div');
+  banner.id='recoveryBanner';
+  banner.style.cssText=`
+    position:fixed;top:0;left:0;right:0;z-index:300;
+    background:linear-gradient(135deg,rgba(240,192,64,0.97),rgba(220,160,20,0.97));
+    color:#000;padding:14px 20px;display:flex;align-items:center;
+    gap:12px;flex-wrap:wrap;font-family:'Syne',sans-serif;
+    box-shadow:0 4px 20px rgba(0,0,0,0.4);
+  `;
+  banner.innerHTML=`
+    <span style="font-size:1.3rem">⚠️</span>
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:800;font-size:0.9rem">Sessió interrompuda detectada</div>
+      <div style="font-size:0.72rem;opacity:0.85;font-family:'DM Mono',monospace">
+        ${escHtml(sess.market||'Mercat')} · ${sess.units} unitats · ${parseFloat(sess.gross||0).toFixed(2)}€ · última activitat ${ageText}
+      </div>
+    </div>
+    <button onclick="dismissRecovery()" style="background:rgba(0,0,0,0.15);border:none;border-radius:7px;padding:7px 14px;font-family:'Syne',sans-serif;font-weight:700;font-size:0.8rem;cursor:pointer;">
+      ✓ Continuar
+    </button>
+    <button onclick="clearRecovery()" style="background:rgba(0,0,0,0.08);border:none;border-radius:7px;padding:7px 14px;font-family:'Syne',sans-serif;font-size:0.8rem;cursor:pointer;opacity:0.7;">
+      Descartar
+    </button>
+  `;
+  document.body.prepend(banner);
+  // Empènyer el wrapper cap avall
+  const w=document.querySelector('.wrapper');
+  if(w) w.style.paddingTop='80px';
+}
+function dismissRecovery(){
+  document.getElementById('recoveryBanner')?.remove();
+  const w=document.querySelector('.wrapper');
+  if(w) w.style.paddingTop='';
+  addLog('info','Sessió recuperada. Continuant amb les dades anteriors.');
+}
+function clearRecovery(){
+  localStorage.removeItem(LS.session);
+  document.getElementById('recoveryBanner')?.remove();
+  const w=document.querySelector('.wrapper');
+  if(w) w.style.paddingTop='';
+}
+// Marcar sessió com a tancada correctament al tancar el mercat
+function markSessionClosed(){
+  try{
+    const raw=localStorage.getItem(LS.session);
+    if(raw){
+      const s=JSON.parse(raw);
+      s.active=false;
+      localStorage.setItem(LS.session,JSON.stringify(s));
+    }
+    sessionStorage.removeItem('mkt_snapshot');
+  }catch(e){}
+}
+
+
+// ══════════════════════════════════════════════════
+//  WAKE LOCK
+// ══════════════════════════════════════════════════
+let wakeLock=null;
+async function requestWakeLock(){
+  if('wakeLock' in navigator){try{wakeLock=await navigator.wakeLock.request('screen');}catch(e){}}
+}
+document.addEventListener('visibilitychange',async()=>{
+  if(document.visibilityState==='visible'&&!wakeLock) await requestWakeLock();
+});
+
+// ══════════════════════════════════════════════════
+//  THEME
+// ══════════════════════════════════════════════════
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme',darkMode?'dark':'light');
+  document.getElementById('themeBtn').textContent=darkMode?'🌙':'☀️';
+}
+function toggleTheme(){darkMode=!darkMode;applyTheme();save();}
+
+// ══════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════
+function goSection(name){
+  closeDrawer();
+  currentSection=name;
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('section-'+name).classList.add('active');
+  const ni=document.getElementById('nav-'+name);
+  if(ni) ni.classList.add('active');
+  if(name==='finances') renderFinances();
+  if(name==='cataleg')  renderCatalogue();
+  if(name==='config')   populateCfgForm();
+  if(name==='historial')renderHistorial();
+  if(name==='bizum')    renderBizumSection();
+}
+function toggleDrawer(){const o=document.getElementById('drawer').classList.contains('open');o?closeDrawer():openDrawer();}
+function openDrawer(){['drawer','drawerBackdrop','hamburgerBtn'].forEach(id=>document.getElementById(id).classList.add('open'));}
+function closeDrawer(){['drawer','drawerBackdrop','hamburgerBtn'].forEach(id=>document.getElementById(id).classList.remove('open'));}
+
+// ══════════════════════════════════════════════════
+//  CATALOGUE
+// ══════════════════════════════════════════════════
+function addProduct(){
+  const emoji=document.getElementById('newEmoji').value.trim()||'📦';
+  const name =document.getElementById('newName').value.trim();
+  const cost =parseFloat(document.getElementById('newCost').value)||0;
+  const pvp  =parseFloat(document.getElementById('newPvp').value)||0;
+  const stockRaw=document.getElementById('newStock').value;
+  const stock=stockRaw!==''?parseInt(stockRaw):null;
+  if(!name){showToast('Escriu un nom per al producte');return;}
+  catalogue.push({id:Date.now(),emoji,name,cost,pvp,active:true,count:0,stock,stockInitial:stock});
+  save(); renderCatalogue(); renderProducts(); updateAll();
+  ['newEmoji','newName','newCost','newPvp','newStock'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('newName').focus();
+  addLog('info',`Afegit: ${emoji} ${name} | cost ${cost.toFixed(2)}€ | PVP ${pvp.toFixed(2)}€${stock!==null?' | stock '+stock:''}`);
+}
+function toggleActive(id){
+  const p=catalogue.find(x=>x.id===id);if(!p)return;
+  p.active=!p.active;save();renderCatalogue();renderProducts();updateAll();
+}
+function openEditProduct(id){
+  const p=catalogue.find(x=>String(x.id)===String(id));if(!p)return;
+  document.getElementById('editId').value    =String(p.id);
+  document.getElementById('editEmoji').value =p.emoji;
+  document.getElementById('editName').value  =p.name;
+  document.getElementById('editCost').value  =p.cost;
+  document.getElementById('editPvp').value   =p.pvp;
+  document.getElementById('editStock').value =p.stockInitial!==null&&p.stockInitial!==undefined?p.stockInitial:'';
+  document.getElementById('editProductModal').classList.add('open');
+}
+function saveEditProduct(){
+  const id=document.getElementById('editId').value;
+  const p=catalogue.find(x=>String(x.id)===String(id));
+  if(!p){showToast('Error: producte no trobat');closeModal('editProductModal');return;}
+  const newEmoji=document.getElementById('editEmoji').value.trim();
+  const newName =document.getElementById('editName').value.trim();
+  if(newEmoji) p.emoji=newEmoji;
+  if(newName)  p.name =newName;
+  const costVal=document.getElementById('editCost').value;
+  const pvpVal =document.getElementById('editPvp').value;
+  if(costVal!=='') p.cost=parseFloat(costVal)||0;
+  if(pvpVal !=='') p.pvp =parseFloat(pvpVal)||0;
+  const sr=document.getElementById('editStock').value;
+  const newStock=sr!==''?parseInt(sr):null;
+  if(newStock!==p.stockInitial){
+    p.stockInitial=newStock;
+    p.stock=newStock; // reset remaining stock to new initial
+  }
+  save();renderCatalogue();renderProducts();updateAll();
+  closeModal('editProductModal');showToast(`${p.emoji} ${p.name} actualitzat`);
+}
+function deleteProduct(id){
+  catalogue=catalogue.filter(p=>p.id!==id);
+  save();renderCatalogue();renderProducts();updateAll();
+}
+function renderCatalogue(){
+  const grid=document.getElementById('catGrid');
+  document.getElementById('cat-count').textContent=catalogue.length;
+  document.getElementById('nb-cataleg').textContent=catalogue.length;
+  if(!catalogue.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="em">📦</div>Afegeix productes al catàleg</div>';return;}
+  grid.innerHTML=catalogue.map(p=>{
+    const mg=p.pvp>0?Math.round((p.pvp-p.cost)/p.pvp*100):null;
+    const stockTxt=p.stockInitial!==null?`Queden: ${p.stock!==null?p.stock:'?'}/${p.stockInitial}`:'Stock: ∞';
+    return `<div class="cat-card">
+      <div class="cat-emoji">${p.emoji}</div>
+      <div class="cat-info">
+        <div class="cat-name">${escHtml(p.name)}</div>
+        <div class="cat-prices">cost <span>${p.cost.toFixed(2)}€</span> · PVP <span>${p.pvp.toFixed(2)}€</span></div>
+        ${mg!==null?`<div class="cat-margin">marge ${mg}%</div>`:''}
+        <div class="cat-stock">${stockTxt}</div>
+      </div>
+      <div class="cat-actions">
+        <button class="icon-btn" onclick="toggleActive(${p.id})" title="${p.active?'Desactivar':'Activar'}">${p.active?'✓':'○'}</button>
+        <button class="icon-btn" onclick="openEditProduct(${p.id})" title="Editar">✏</button>
+        <button class="icon-btn del" onclick="deleteProduct(${p.id})" title="Eliminar">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+//  VENDA
+// ══════════════════════════════════════════════════
+function renderProducts(){
+  const grid=document.getElementById('productsGrid');
+  const active=catalogue.filter(p=>p.active);
+  if(!active.length){grid.innerHTML='<div class="empty-state"><div class="em">📦</div>Activa productes al Catàleg</div>';return;}
+  grid.innerHTML=active.map((p,i)=>{
+    const gross=p.count*p.pvp;
+    const mg=p.pvp>0?Math.round((p.pvp-p.cost)/p.pvp*100):null;
+    const outStock=p.stock!==null&&p.stock<=0;
+    const lowStock=p.stock!==null&&p.stockInitial!==null&&p.stock<=p.stockInitial*LOW_STOCK_PCT&&p.stock>0;
+    let stockBadge='';
+    if(outStock) stockBadge=`<span class="p-stock-badge out">Esgotat</span>`;
+    else if(lowStock) stockBadge=`<span class="p-stock-badge low">↓${p.stock}</span>`;
+    else if(p.stockInitial!==null) stockBadge=`<span class="p-stock-badge">${p.stock}</span>`;
+    const shortcut=i<9?`<span class="shortcut-key">${i+1}</span>`:'';
+    return `<div class="product-card${outStock?' out-stock':lowStock?' low-stock':''}" data-id="${p.id}" onclick="handleCardClick(event,${p.id})">
+      <button class="rm-btn" onclick="event.stopPropagation();deleteProduct(${p.id})">✕</button>
+      ${stockBadge}${shortcut}
+      <div class="p-emoji">${p.emoji}</div>
+      <div class="p-name">${escHtml(p.name)}</div>
+      <div class="p-pvp">${p.pvp>0?p.pvp.toFixed(2)+'€'+(mg!==null?' ·'+mg+'%':''):'—'}</div>
+      <div class="p-count">${p.count}</div>
+      <div class="p-actions">
+        <button class="cnt-btn" onclick="event.stopPropagation();decrement(${p.id})" ${p.count===0?'disabled':''}>−</button>
+        ${gross>0?`<span class="p-total">${gross.toFixed(2)}€</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+function handleCardClick(e,id){if(!e.target.closest('button'))increment(id,payMethod);}
+
+function recordSalePayment(method, amount){
+  const m = method || 'cash';
+  payTotals[m] = parseFloat(((payTotals[m]||0) + amount).toFixed(2));
+  if(m==='bizum') addBizumOp(amount, true);
+}
+function undoSalePayment(tx){
+  const m=tx.method||'cash';
+  payTotals[m]=parseFloat(Math.max(0,(payTotals[m]||0)-tx.amount).toFixed(2));
+  if(m==='bizum') subBizumAmount(tx.amount, true);
+}
+function increment(id,method){
+  const p=catalogue.find(x=>x.id===id);if(!p)return;
+  if(p.stock!==null&&p.stock<=0){showToast(`${p.emoji} ${p.name} sense stock!`);return;}
+  const pm=method||payMethod;
+  const tx={id:(crypto.randomUUID?crypto.randomUUID():'tx-'+Date.now()+'-'+Math.random()),productId:id,qty:1,amount:Number(p.pvp)||0,method:pm,ts:new Date().toISOString()};
+  p.count++; if(p.stock!==null) p.stock--;
+  transactionLog.push(tx); transactions++;
+  recordSalePayment(pm,tx.amount);
+  salesSinceLastSync++; save();renderProducts();updateAll();flashCard(id);
+  addLog('success',`+1 → ${p.emoji} ${p.name} [${pm}] (total: ${p.count})`);
+  checkAutoSync();
+}
+function decrement(id){
+  const p=catalogue.find(x=>x.id===id);if(!p||p.count<=0)return;
+  // Undo the most recent transaction for this product, not the currently selected payment method.
+  let idx=-1; for(let i=transactionLog.length-1;i>=0;i--){if(transactionLog[i].productId===id){idx=i;break;}}
+  const tx=idx>=0?transactionLog[idx]:null;
+  p.count--; if(p.stock!==null) p.stock++;
+  if(tx){undoSalePayment(tx);transactionLog.splice(idx,1);}
+  transactions=Math.max(0,transactions-1);
+  save();renderProducts();updateAll();
+  addLog('info',`Correcció: ${p.emoji} ${p.name} → ${p.count}`);
+}
+function flashCard(id){
+  const el=document.querySelector(`.product-card[data-id="${id}"]`);
+  if(el){el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');}
+}
+
+// ── CAPA 3: Auto-sync a Google Sheets ──
+// Sincronitza si han passat AUTO_SYNC_SALES vendes O AUTO_SYNC_MINUTES minuts
+let _autoSyncRunning = false;
+async function checkAutoSync(){
+  if(!settings.scriptUrl) return;
+  if(_autoSyncRunning) return;
+  const salesOk = salesSinceLastSync >= AUTO_SYNC_SALES;
+  const timeOk  = lastAutoSync>0 && (Date.now()-lastAutoSync) >= AUTO_SYNC_MINUTES*60*1000;
+  if(!salesOk && !timeOk) return;
+  _autoSyncRunning = true;
+  try{
+    addLog('info',`🔄 Auto-sync (${salesSinceLastSync} vendes, ${Math.round((Date.now()-lastAutoSync)/60000)}min)…`);
+    await syncNow(false);
+    salesSinceLastSync = 0;
+    lastAutoSync = Date.now();
+  }catch(e){
+    addLog('error','Auto-sync error: '+e.message);
+  }finally{
+    _autoSyncRunning = false;
+  }
+}
+// Timer per la condició de temps (s'executa cada minut)
+setInterval(()=>{ checkAutoSync(); }, 60*1000);
+
+// Payment method
+function setPayMethod(m){
+  payMethod=m;
+  ['cash','card','bizum-q'].forEach(id=>{
+    const btn=document.getElementById('pay-'+id);
+    if(btn) btn.className='pay-btn';
+  });
+  const active=document.getElementById('pay-'+m+(m==='bizum'?'-q':''));
+  if(active) active.className=`pay-btn active-${m==='bizum'?'bizum':m}`;
+}
+
+// Notes
+function openNoteModal(){
+  document.getElementById('noteInput').value=market.notes||'';
+  document.getElementById('noteModal').classList.add('open');
+}
+function saveNote(){
+  market.notes=document.getElementById('noteInput').value.trim();
+  save();updateNoteDisplay();closeModal('noteModal');
+}
+function updateNoteDisplay(){
+  const el=document.getElementById('noteDisplay');
+  el.textContent=market.notes?`📝 ${market.notes}`:'📝 Notes del mercat — clica per editar';
+}
+
+// ══════════════════════════════════════════════════
+//  BIZUM
+// ══════════════════════════════════════════════════
+function getBizumYear(y){
+  if(!bizumYears[y]) bizumYears[y]={total:0,entries:[],dailyOps:{},monthlyOps:{}};
+  const yr=bizumYears[y];
+  if(!yr.dailyOps)   yr.dailyOps={};
+  if(!yr.monthlyOps) yr.monthlyOps={};
+  if(!yr.entries)    yr.entries=[];
+  return yr;
+}
+function currentYear(){return new Date().getFullYear();}
+function todayKey(){return new Date().toISOString().slice(0,10);}
+function monthKey(){return new Date().toISOString().slice(0,7);}
+
+function bizumValidate(v){
+  if(isNaN(v)||v<=0)        return 'Introdueix un import vàlid';
+  if(v<BIZ_OP_MIN)          return `Import mínim per operació: ${BIZ_OP_MIN.toFixed(2)}€`;
+  if(v>BIZ_OP_MAX)          return `❌ Supera el límit de ${BIZ_OP_MAX}€ per operació`;
+  const yr=getBizumYear(currentYear());
+  const day=todayKey(); const mon=monthKey();
+  const dayT=(yr.dailyOps[day]||{total:0}).total+v;
+  if(dayT>BIZ_DAY)          return `❌ Superaria el límit diari de ${BIZ_DAY}€`;
+  const monC=(yr.monthlyOps[mon]||{count:0}).count+1;
+  if(monC>BIZ_OPS_MO)       return `❌ Superaria les ${BIZ_OPS_MO} operacions mensuals`;
+  if(yr.total+v>BIZ_ANNUAL) return `⚠ Superaria el límit anual de ${BIZ_ANNUAL}€`;
+  return null;
+}
+function addBizumOp(v, fromSale=false){
+  const yr=getBizumYear(currentYear()); const day=todayKey(); const mon=monthKey();
+  if(!yr.dailyOps[day]) yr.dailyOps[day]={total:0}; if(!yr.monthlyOps[mon]) yr.monthlyOps[mon]={count:0};
+  yr.total=parseFloat((yr.total+v).toFixed(2)); yr.dailyOps[day].total=parseFloat((yr.dailyOps[day].total+v).toFixed(2)); yr.monthlyOps[mon].count++;
+  if(!fromSale) payTotals.bizum=parseFloat(((payTotals.bizum||0)+v).toFixed(2));
+}
+function subBizumAmount(v, fromSale=false){
+  const yr=getBizumYear(currentYear()); const day=todayKey(); const mon=monthKey();
+  yr.total=parseFloat(Math.max(0,yr.total-v).toFixed(2));
+  if(yr.dailyOps[day]) yr.dailyOps[day].total=parseFloat(Math.max(0,yr.dailyOps[day].total-v).toFixed(2));
+  if(yr.monthlyOps[mon]&&yr.monthlyOps[mon].count>0) yr.monthlyOps[mon].count--;
+  if(!fromSale) payTotals.bizum=parseFloat(Math.max(0,(payTotals.bizum||0)-v).toFixed(2));
+}
+function addBizumVenda(){
+  const v=parseFloat(document.getElementById('bizumVendaInput').value); const err=bizumValidate(v); if(err){showToast(err);return;}
+  addBizumOp(v,false); document.getElementById('bizumVendaInput').value=''; save();updateAll();if(currentSection==='bizum'||currentSection==='finances')renderFinances();
+  const yr=getBizumYear(currentYear()); addLog('info',`Bizum +${v.toFixed(2)}€ → dia: ${(yr.dailyOps[todayKey()]||{total:v}).total.toFixed(2)}€ | any: ${yr.total.toFixed(2)}€`);
+}
+function subBizumVenda(){
+  const v=parseFloat(document.getElementById('bizumVendaInput').value)||0; if(v<=0){showToast('Introdueix un import per corregir');return;}
+  subBizumAmount(v,false); document.getElementById('bizumVendaInput').value=''; save();updateAll();if(currentSection==='bizum'||currentSection==='finances')renderFinances(); addLog('info',`Bizum −${v.toFixed(2)}€ → acumulat any: ${getBizumYear(currentYear()).total.toFixed(2)}€`);
+}
+function updateBizumVendaUI(){
+  const yr=getBizumYear(currentYear());
+  setEl('qs-bizum',       'textContent', yr.total.toFixed(0)+'€');
+  setEl('qs-bizum-sub',   'textContent', `any ${currentYear()}`);
+  setEl('bizumVendaTotal','textContent', yr.total.toFixed(2).replace('.',',')+' € any');
+  setEl('nb-bizum',       'textContent', yr.total.toFixed(0)+'€');
+}
+
+// ══════════════════════════════════════════════════
+//  FINANCIALS CALC
+// ══════════════════════════════════════════════════
+function calcFin(){
+  const active=catalogue.filter(p=>p.active);
+  const gross    =active.reduce((s,p)=>s+p.count*p.pvp,0);
+  const prodCost =active.reduce((s,p)=>s+p.count*p.cost,0);
+  const mktCost  =market.paid?(market.fee||0):0;
+  const travel   =market.travel||0;
+  const net      =gross-prodCost-mktCost-travel;
+  const units    =active.reduce((s,p)=>s+p.count,0);
+  const margin   =gross>0?Math.round(net/gross*100):0;
+  const ticket   =transactions>0?gross/transactions:0;
+  const totalCosts=prodCost+mktCost+travel;
+  // break-even: units needed to cover fixed costs
+  const avgPvp   =units>0?gross/units:0;
+  const avgCost  =units>0?prodCost/units:0;
+  const contrib  =avgPvp-avgCost; // contribution margin per unit
+  const fixedCosts=mktCost+travel;
+  const beUnits  =contrib>0?Math.ceil(fixedCosts/contrib):null;
+  const beRevenue=beUnits!==null?beUnits*avgPvp:null;
+  return {gross,prodCost,mktCost,travel,net,units,margin,ticket,totalCosts,beUnits,beRevenue,contrib,fixedCosts};
+}
+const f2=v=>v.toFixed(2).replace('.',',')+' €';
+const f2s=v=>v.toFixed(2)+'€';
+
+
+// Safe DOM update helper — never throws if element missing
+function setEl(id, prop, val){
+  const el=document.getElementById(id);
+  if(el) el[prop]=val;
+}
+function setStyle(id, prop, val){
+  const el=document.getElementById(id);
+  if(el) el.style[prop]=val;
+}
+
+// ══════════════════════════════════════════════════
+//  UPDATE ALL
+// ══════════════════════════════════════════════════
+function updateAll(){
+  const f=calcFin();
+  const yr=getBizumYear(currentYear());
+  const cashTotal=(payTotals.cash||0)+(market.caixaInicial||0);
+
+  // quick stats (safe — elements only exist in venda section)
+  setEl('qs-units',  'textContent', f.units);
+  setEl('qs-gross',  'textContent', f.gross>0?f.gross.toFixed(0)+'€':'0€');
+  setEl('qs-ticket', 'textContent', f.ticket>0?f.ticket.toFixed(2)+'€':'—');
+  setEl('qs-caixa',  'textContent', cashTotal.toFixed(0)+'€');
+  updateBizumVendaUI();
+
+  // caixa detail
+  setEl('caixaVal',    'textContent', f2(cashTotal));
+  setEl('caixaDetail', 'textContent', `inicial ${(market.caixaInicial||0).toFixed(2)}€ + vendes ${(payTotals.cash||0).toFixed(2)}€`);
+
+  // objective bar
+  const obj=market.objective||0;
+  const pct=obj>0?Math.min(Math.round(f.gross/obj*100),100):0;
+  setStyle('pb-obj','width',pct+'%');
+  setStyle('pb-obj','background',pct>=100?'var(--green)':'var(--blue)');
+
+  // nav badges (always in DOM inside drawer)
+  setEl('nb-venda',        'textContent', f.units+' ud');
+  setEl('nb-finances',     'textContent', f.gross>0?f.gross.toFixed(0)+'€':'0€');
+  setEl('nb-historial',    'textContent', historial.length);
+  setEl('drawerMarketName','textContent', market.name||'Mercat');
+
+  // Indicador de vendes pendents de sync
+  const pending = salesSinceLastSync + pendingSyncs.length;
+  const syncEl  = document.getElementById('qs-sync');
+  if(syncEl && pending>0){
+    syncEl.style.color='var(--accent)';
+    const sub=syncEl.nextElementSibling;
+    if(sub) sub.textContent=`${pending} pendent${pending>1?'s':''}`;
+  }
+
+  if(currentSection==='finances') renderFinances();
+}
+
+// ══════════════════════════════════════════════════
+//  FINANCES RENDER
+// ══════════════════════════════════════════════════
+function renderFinances(){
+  const f=calcFin();
+  const yr=getBizumYear(currentYear());
+
+  // big cards
+  setEl('fin-big-gross',  'textContent', f2(f.gross));
+  setEl('fin-big-ticket', 'textContent', f.ticket>0?f2(f.ticket):'—');
+  setEl('fin-big-margin', 'textContent', f.margin+'%');
+  const bn=document.getElementById('fin-big-net');
+  if(bn){bn.textContent=f2(f.net);bn.className='fin-big-val '+(f.net>=0?'green':'red');}
+
+  // breakdown
+  setEl('fin-gross',    'textContent', f2(f.gross));
+  setEl('fin-prodcost', 'textContent', f2(f.prodCost));
+  setEl('fin-mktcost',  'textContent', f2(f.mktCost));
+  setEl('fin-travel',   'textContent', f2(f.travel));
+  const fn=document.getElementById('fin-net');
+  if(fn){fn.textContent=f2(f.net);fn.className='fin-total-val '+(f.net>=0?'green':'red');}
+
+  // Payment methods donut
+  renderPayChart(f.gross);
+
+  // Break-even
+  renderBreakeven(f);
+
+  // Sales bar chart
+  renderSalesChart();
+
+  // Product table
+  renderProdTable();
+
+  // Bizum section too
+  renderBizumSection();
+}
+
+function renderPayChart(gross){
+  const el=document.getElementById('payChart');
+  const methods=[
+    {key:'cash',label:'💵 Efectiu',color:'var(--green)'},
+    {key:'card',label:'💳 Targeta',color:'var(--blue)'},
+    {key:'bizum',label:'📱 Bizum',color:'var(--purple)'},
+  ];
+  const total=Object.values(payTotals).reduce((s,v)=>s+(v||0),0)||1;
+  el.innerHTML=methods.map(m=>{
+    const v=payTotals[m.key]||0;
+    const pct=Math.round(v/total*100);
+    return `<div class="pay-segment">
+      <div class="pay-dot" style="background:${m.color}"></div>
+      <div>
+        <div class="pay-seg-label">${m.label}</div>
+        <div class="pay-seg-val" style="color:${m.color}">${f2(v)} <span style="color:var(--muted);font-size:0.62rem;">${pct}%</span></div>
+      </div>
+    </div>`;
+  }).join('');
+  // simple donut in payDonut
+  const donut=document.getElementById('payDonut');
+  const size=120; const r=40; const cx=60; const cy=60;
+  let cumAngle=-90;
+  const slices=methods.map(m=>({...m,v:payTotals[m.key]||0})).filter(m=>m.v>0);
+  if(!slices.length){donut.innerHTML='<div style="padding:14px;text-align:center;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.7rem;">Sense dades de pagament</div>';return;}
+  const totalV=slices.reduce((s,m)=>s+m.v,0)||1;
+  let paths='';
+  slices.forEach(m=>{
+    const angle=m.v/totalV*360;
+    const endA=cumAngle+angle;
+    const x1=cx+r*Math.cos(cumAngle*Math.PI/180);
+    const y1=cy+r*Math.sin(cumAngle*Math.PI/180);
+    const x2=cx+r*Math.cos(endA*Math.PI/180);
+    const y2=cy+r*Math.sin(endA*Math.PI/180);
+    const large=angle>180?1:0;
+    paths+=`<path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${large},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${m.color}" opacity="0.85"/>`;
+    cumAngle=endA;
+  });
+  // inner hole
+  paths+=`<circle cx="${cx}" cy="${cy}" r="22" fill="var(--surface)"/>`;
+  donut.innerHTML=`<div class="donut-wrap"><svg class="donut-svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${paths}</svg>
+  <div>${slices.map(m=>`<div class="pay-segment" style="margin-bottom:6px"><div class="pay-dot" style="background:${m.color}"></div><div><div class="pay-seg-label">${m.label}</div><div class="pay-seg-val" style="color:${m.color}">${f2(m.v)}</div></div></div>`).join('')}</div></div>`;
+}
+
+function renderBreakeven(f){
+  const el=document.getElementById('breakevenCard');
+  if(f.fixedCosts<=0){el.innerHTML='<div class="be-row"><span class="be-lbl">No hi ha costos fixos configurats</span><span class="be-val" style="color:var(--muted)">—</span></div>';return;}
+  const achieved=f.net>=0;
+  el.innerHTML=`
+    <div class="be-row"><span class="be-lbl">Costos fixos (mercat + desplaç.)</span><span class="be-val" style="color:var(--danger)">${f2(f.fixedCosts)}</span></div>
+    <div class="be-row"><span class="be-lbl">Marge de contribució/ud</span><span class="be-val">${f.contrib>0?f2(f.contrib):'—'}</span></div>
+    <div class="be-row"><span class="be-lbl">Unitats per cobrir costos</span><span class="be-val" style="color:${achieved?'var(--green)':'var(--accent)'}">${f.beUnits!==null?f.beUnits+' ud':'—'}</span></div>
+    <div class="be-row"><span class="be-lbl">Ingressos per cobrir costos</span><span class="be-val" style="color:${achieved?'var(--green)':'var(--accent)'}">${f.beRevenue!==null?f2(f.beRevenue):'—'}</span></div>
+    <div class="be-row"><span class="be-lbl">Estat</span><span class="be-val" style="color:${achieved?'var(--green)':'var(--danger)'}">${achieved?'✓ Punt d\'equilibri assolit!':'⏳ Falten '+(f.beRevenue?f2(f.beRevenue-f.gross):'—')}</span></div>`;
+}
+
+function renderSalesChart(){
+  const el=document.getElementById('salesChart');
+  const active=catalogue.filter(p=>p.active&&p.count>0).sort((a,b)=>b.count-a.count);
+  if(!active.length){el.innerHTML='<div style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.7rem;padding:8px;">Sense vendes</div>';return;}
+  const max=Math.max(...active.map(p=>p.count));
+  el.innerHTML=active.map(p=>`
+    <div class="bar-item">
+      <div class="bar-fill" style="height:${Math.max(p.count/max*100,4)}%;background:var(--accent);" data-tip="${p.count} ud · ${(p.count*p.pvp).toFixed(2)}€"></div>
+      <div class="bar-label">${p.emoji}<br>${escHtml(p.name.slice(0,8))}</div>
+      <div class="bar-val">${p.count}</div>
+    </div>`).join('');
+}
+
+function renderProdTable(){
+  const tbody=document.getElementById('prod-tbody');
+  const active=catalogue.filter(p=>p.active&&p.count>0);
+  if(!active.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:16px;font-size:0.7rem;">Sense vendes</td></tr>';return;}
+  tbody.innerHTML=active.map(p=>{
+    const rev=p.count*p.pvp,cost=p.count*p.cost,ben=rev-cost;
+    const mg=p.pvp>0?Math.round((p.pvp-p.cost)/p.pvp*100):null;
+    const stockLeft=p.stockInitial!==null?p.stock:'∞';
+    return `<tr>
+      <td class="td-name">${p.emoji} ${escHtml(p.name)}</td>
+      <td class="td-m">${p.count}</td>
+      <td class="td-m">${stockLeft}</td>
+      <td>${p.pvp>0?p.pvp.toFixed(2)+'€':'—'}</td>
+      <td class="td-m">${p.cost>0?p.cost.toFixed(2)+'€':'—'}</td>
+      <td class="td-g">${rev.toFixed(2)}€</td>
+      <td class="${ben>=0?'td-g':'td-r'}">${ben.toFixed(2)}€</td>
+      <td class="${mg!==null&&mg>=0?'td-g':'td-r'}">${mg!==null?mg+'%':'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+//  HISTORIAL
+// ══════════════════════════════════════════════════
+function renderHistorial(){
+  const nb=document.getElementById('nb-historial');
+  nb.textContent=historial.length;
+
+  // Summary stats across all markets
+  const sumEl=document.getElementById('hist-summary');
+  if(!historial.length){
+    sumEl.innerHTML='';
+    document.getElementById('histChart').innerHTML='<div style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.7rem;padding:8px;">Cap mercat tancat encara</div>';
+    document.getElementById('rank-tbody').innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:14px;font-size:0.7rem;">Sense dades</td></tr>';
+    document.getElementById('histList').innerHTML='<div class="hist-empty">Cap mercat tancat. Usa "Tancar mercat" per desar el resum.</div>';
+    return;
+  }
+
+  const totalNet=historial.reduce((s,h)=>s+(h.financials.net||0),0);
+  const totalGross=historial.reduce((s,h)=>s+(h.financials.gross||0),0);
+  const totalUnits=historial.reduce((s,h)=>s+(h.financials.units||0),0);
+  const avgNet=totalNet/historial.length;
+  sumEl.innerHTML=`
+    <div class="fin-big"><div class="fin-big-label">Mercats</div><div class="fin-big-val accent">${historial.length}</div><div class="fin-big-sub">tancats</div></div>
+    <div class="fin-big"><div class="fin-big-label">Total ingressos</div><div class="fin-big-val accent">${f2(totalGross)}</div><div class="fin-big-sub">acumulat</div></div>
+    <div class="fin-big"><div class="fin-big-label">Total guany net</div><div class="fin-big-val ${totalNet>=0?'green':'red'}">${f2(totalNet)}</div><div class="fin-big-sub">acumulat</div></div>
+    <div class="fin-big"><div class="fin-big-label">Guany mitjà</div><div class="fin-big-val ${avgNet>=0?'green':'red'}">${f2(avgNet)}</div><div class="fin-big-sub">per mercat</div></div>`;
+
+  // Bar chart
+  const chartEl=document.getElementById('histChart');
+  const maxN=Math.max(...historial.map(h=>Math.abs(h.financials.net||0)),1);
+  chartEl.innerHTML=historial.slice(-12).map(h=>{
+    const n=h.financials.net||0;
+    const pct=Math.max(Math.abs(n)/maxN*100,3);
+    const col=n>=0?'var(--green)':'var(--danger)';
+    const lbl=(h.market?.name||'—').slice(0,8);
+    return `<div class="bar-item">
+      <div class="bar-fill" style="height:${pct}%;background:${col};" data-tip="${lbl}: ${f2s(n)}"></div>
+      <div class="bar-label">${escHtml(lbl)}<br>${(h.market?.date||'').slice(5)||'—'}</div>
+      <div class="bar-val" style="color:${col}">${n>=0?'+':''}${n.toFixed(0)}€</div>
+    </div>`;
+  }).join('');
+
+  // Rànquing productes acumulat
+  const rankMap={};
+  historial.forEach(h=>{
+    (h.products||[]).forEach(p=>{
+      const k=p.name;
+      if(!rankMap[k]) rankMap[k]={emoji:p.emoji,name:p.name,units:0,revenue:0,profit:0};
+      rankMap[k].units  +=(p.count||0);
+      rankMap[k].revenue+=parseFloat(p.revenue||0);
+      rankMap[k].profit +=parseFloat(p.profit||0);
+    });
+  });
+  const ranked=Object.values(rankMap).sort((a,b)=>b.profit-a.profit);
+  const rtb=document.getElementById('rank-tbody');
+  rtb.innerHTML=ranked.slice(0,10).map((p,i)=>`<tr>
+    <td class="td-m">${i+1}</td>
+    <td class="td-name">${p.emoji} ${escHtml(p.name)}</td>
+    <td class="td-m">${p.units}</td>
+    <td class="td-g">${p.revenue.toFixed(2)}€</td>
+    <td class="${p.profit>=0?'td-g':'td-r'}">${p.profit.toFixed(2)}€</td>
+  </tr>`).join('');
+
+  // Cards
+  document.getElementById('histList').innerHTML=historial.slice().reverse().map((h,i)=>{
+    const f=h.financials||{};
+    const note=h.market?.notes?`<div class="hist-note">"${escHtml(h.market.notes)}"</div>`:'';
+    return `<div class="hist-card">
+      <div class="hist-card-top">
+        <div><div class="hist-market">${escHtml(h.market?.name||'—')}</div><div class="hist-date">${h.market?.date||'—'}${h.market?.hours?' · '+h.market.hours+'h':''}</div></div>
+        <div class="hist-net ${(f.net||0)>=0?'green':'red'}">${f2s(f.net||0)}</div>
+      </div>
+      <div class="hist-stats">
+        <div class="hist-stat">Bruts: <span>${f2s(f.gross||0)}</span></div>
+        <div class="hist-stat">Unitats: <span>${f.units||0}</span></div>
+        <div class="hist-stat">Marge: <span>${f.margin||0}%</span></div>
+        <div class="hist-stat">Bizum: <span>${f2s(f.bizumDay||0)}</span></div>
+      </div>
+      ${note}
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+//  BIZUM SECTION
+// ══════════════════════════════════════════════════
+function renderBizumSection(){
+  const yr=getBizumYear(selectedBizumYear);
+  const pct=Math.min(yr.total/BIZ_ANNUAL*100,100);
+  const day=todayKey(); const mon=monthKey();
+  const dayT=selectedBizumYear===currentYear()?(yr.dailyOps[day]||{total:0}).total:0;
+  const monC=selectedBizumYear===currentYear()?(yr.monthlyOps[mon]||{count:0}).count:0;
+  const dayPct=Math.min(dayT/BIZ_DAY*100,100);
+  const monPct=Math.min(monC/BIZ_OPS_MO*100,100);
+
+  // Year tabs
+  const years=Object.keys(bizumYears).map(Number).sort((a,b)=>b-a);
+  if(!years.includes(currentYear())) years.unshift(currentYear());
+  document.getElementById('bizYearTabs').innerHTML=years.map(y=>
+    `<div class="year-tab${y===selectedBizumYear?' active':''}" onclick="selectBizumYear(${y})">${y}</div>`
+  ).join('');
+  document.getElementById('biz-amount').textContent=yr.total.toFixed(2).replace('.',',')+' €';
+  document.getElementById('biz-sub').textContent=`any ${selectedBizumYear} · de ${BIZ_ANNUAL}€ límit`;
+  const annBar=document.getElementById('biz-bar');
+  annBar.style.width=pct+'%';
+  annBar.style.background=pct>=90?'var(--danger)':pct>=70?'var(--accent)':'var(--purple)';
+  document.getElementById('biz-pct').textContent=pct.toFixed(1)+'%';
+  const warn=document.getElementById('biz-warn');
+  if(pct>=90){warn.className='biz-warn alert';warn.textContent='⚠ ATENCIÓ! Pròxim al límit anual de 2.500€';}
+  else if(pct>=70){warn.className='biz-warn warn';warn.textContent='⚡ Superant el 70% del límit anual';}
+  else{warn.className='biz-warn ok';warn.textContent='✓ Dins del límit legal';}
+
+  function lc(p){return p>=90?'var(--danger)':p>=70?'var(--accent)':'var(--green)';}
+  function lb(p){return p>=90?'rgba(224,90,48,0.08)':p>=70?'rgba(240,192,64,0.06)':'rgba(62,207,142,0.06)';}
+  function lbd(p){return p>=90?'rgba(224,90,48,0.3)':p>=70?'rgba(240,192,64,0.25)':'rgba(62,207,142,0.2)';}
+
+  document.getElementById('biz-limits-wrap').innerHTML=`<div class="biz-limits-grid">
+    <div class="biz-limit-card" style="background:${lb(dayPct)};border-color:${lbd(dayPct)}">
+      <div class="blc-icon">📅</div>
+      <div class="blc-info"><div class="blc-label">Límit diari</div>
+      <div class="blc-val" style="color:${lc(dayPct)}" id="biz-day-val">${dayT.toFixed(2).replace('.',',')} €</div>
+      <div class="blc-max">màx. ${BIZ_DAY.toLocaleString('ca-ES')} €/dia</div></div>
+      <div class="blc-pct" style="color:${lc(dayPct)}">${dayPct.toFixed(0)}%</div>
+    </div>
+    <div class="biz-limit-card" style="background:${lb(monPct)};border-color:${lbd(monPct)}">
+      <div class="blc-icon">🗓</div>
+      <div class="blc-info"><div class="blc-label">Operacions mes</div>
+      <div class="blc-val" style="color:${lc(monPct)}" id="biz-mon-val">${monC} / ${BIZ_OPS_MO}</div>
+      <div class="blc-max">màx. ${BIZ_OPS_MO} operacions/mes</div></div>
+      <div class="blc-pct" style="color:${lc(monPct)}">${monPct.toFixed(0)}%</div>
+    </div>
+    <div class="biz-limit-card" style="background:rgba(167,139,250,0.05);border-color:rgba(167,139,250,0.2)">
+      <div class="blc-icon">💸</div>
+      <div class="blc-info"><div class="blc-label">Per operació</div>
+      <div class="blc-val" style="color:var(--purple)">${BIZ_OP_MIN.toFixed(2)} – ${BIZ_OP_MAX.toLocaleString('ca-ES')} €</div>
+      <div class="blc-max">rang legal per pagament</div></div>
+      <div class="blc-pct" style="color:var(--purple)">—</div>
+    </div>
+  </div>`;
+
+  // History
+  const hist=document.getElementById('biz-hist-list');
+  if(!yr.entries||!yr.entries.length){
+    hist.innerHTML='<div style="padding:14px;text-align:center;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.7rem;">Sense entrades per a aquest any</div>';
+  } else {
+    hist.innerHTML=yr.entries.slice().reverse().map(e=>
+      `<div class="biz-hist-row">
+        <div><div class="biz-hist-market">${escHtml(e.market||'—')}</div><div class="biz-hist-date">${e.date||''}</div></div>
+        <div class="biz-hist-amt">+${parseFloat(e.amount).toFixed(2)}€</div>
+      </div>`
+    ).join('');
+  }
+}
+function selectBizumYear(y){selectedBizumYear=y;renderBizumSection();}
+
+// ══════════════════════════════════════════════════
+//  RESET / DELETE
+// ══════════════════════════════════════════════════
+function resetAll(){document.getElementById('resetModal').classList.add('open');}
+function confirmReset(){
+  catalogue.forEach(p=>{p.count=0;if(p.stockInitial!==null)p.stock=p.stockInitial;});
+  payTotals={cash:0,card:0,bizum:0};
+  transactions=0;
+  transactionLog=[];
+  bizumDay=0;
+  salesSinceLastSync=0;
+  markSessionClosed();
+  save();renderProducts();updateAll();closeModal('resetModal');
+  addLog('info','Dia resetejat. Tots els comptadors a 0.');
+  showToast('Comptadors resetejats');
+}
+function confirmDeleteProducts(){document.getElementById('delProductsModal').classList.add('open');}
+function deleteAllProducts(){
+  catalogue=[];save();renderCatalogue();renderProducts();updateAll();
+  closeModal('delProductsModal');showToast('Catàleg eliminat');
+}
+function confirmResetBizum(){document.getElementById('resetBizumModal').classList.add('open');}
+function doResetBizum(){
+  bizumYears[currentYear()]={total:0,entries:[],dailyOps:{},monthlyOps:{}};
+  payTotals.bizum=0;
+  save();updateAll();if(currentSection==='bizum')renderBizumSection();
+  closeModal('resetBizumModal');showToast('Bizum any actual resetejat');
+}
+
+// ══════════════════════════════════════════════════
+//  CLOSE MARKET
+// ══════════════════════════════════════════════════
+function openCloseMarket(){
+  const f=calcFin();
+  const yr=getBizumYear(currentYear());
+  const rows=[
+    ['Mercat',market.name],['Data',market.date||'—'],['Durada',market.hours>0?market.hours+'h':'—'],
+    ['Unitats venudes',f.units],['Ingressos bruts',f2(f.gross)],
+    ['Cost productes','− '+f2(f.prodCost)],['Cost mercat','− '+f2(f.mktCost)],['Desplaçament','− '+f2(f.travel)],
+    ['Bizum mercat',f2(payTotals.bizum||0)],['Efectiu caixa',f2((payTotals.cash||0)+(market.caixaInicial||0))],
+    ['GUANY NET',f2(f.net)],
+  ];
+  document.getElementById('closeSummary').innerHTML=rows.map((r,i)=>
+    `<div class="cs-row"${i===rows.length-1?` style="color:${f.net>=0?'var(--green)':'var(--danger)'}"`:''}><span>${r[0]}</span><span>${r[1]}</span></div>`
+  ).join('');
+  document.getElementById('closeMarketModal').classList.add('open');
+}
+async function closeMarketConfirm(){
+  const f  = calcFin();
+  const yr = getBizumYear(currentYear());
+
+  // ── 1. Guardar snapshot al historial local ──
+  const snap={
+    closedAt:    new Date().toISOString(),
+    market:      {...market},
+    financials:{
+      gross:f.gross, prodCost:f.prodCost, marketCost:f.mktCost,
+      travel:f.travel, net:f.net, margin:f.margin,
+      units:f.units, transactions, ticket:f.ticket,
+      cashTotal:(payTotals.cash||0)+(market.caixaInicial||0),
+      cardTotal:payTotals.card||0,
+      bizumDay:(payTotals.bizum||0), bizumYear:yr.total,
+    },
+    payTotals:   {...payTotals},
+    transactions,
+    transactionLog: transactionLog.slice(),
+    products:    catalogue.filter(p=>p.active).map(p=>({
+      emoji:p.emoji, name:p.name, count:p.count, pvp:p.pvp, cost:p.cost,
+      revenue:parseFloat((p.count*p.pvp).toFixed(2)),
+      profit: parseFloat((p.count*(p.pvp-p.cost)).toFixed(2)),
+      margin: p.pvp>0?Math.round((p.pvp-p.cost)/p.pvp*100)+'%':'—',
+    })),
+  };
+  historial.push(snap);
+
+  // ── 2. Registrar Bizum a l'historial anual ──
+  if(bizumDay>0){
+    if(!yr.entries) yr.entries=[];
+    yr.entries.push({
+      date:   market.date||new Date().toISOString().slice(0,10),
+      market: market.name,
+      amount: bizumDay,
+    });
+  }
+
+  // ── 3. Sincronitzar amb Google Sheets (ABANS del reset) ──
+  closeModal('closeMarketModal');
+  const synced = await syncNow(true);
+
+  // ── 4. CAPA 5: Export automàtic JSON al dispositiu ──
+  autoExportJSON(snap);
+
+  // ── 5. Reset complet de comptadors ──
+  catalogue.forEach(p=>{
+    p.count=0;
+    if(p.stockInitial!==null) p.stock=p.stockInitial;
+  });
+  payTotals        = {cash:0, card:0, bizum:0};
+  transactions     = 0;
+  bizumDay         = 0;
+  salesSinceLastSync = 0;
+  lastAutoSync     = Date.now();
+
+  // ── 6. Marcar sessió com a tancada correctament ──
+  markSessionClosed();
+
+  save();
+  renderProducts();
+  updateAll();
+  addLog('info',synced?'✅ Mercat tancat. Comptadors resetejats per al proper mercat.':'📴 Mercat tancat localment. La sincronització queda pendent.');
+  showToast(synced?'✅ Mercat tancat correctament':'📴 Mercat tancat · sincronització pendent');
+}
+
+// ══════════════════════════════════════════════════
+//  CAPA 5: SISTEMA DE BACKUP ROTATIU (3 SLOTS)
+//  — Local: 3 slots al localStorage (backup_0/1/2)
+//  — Núvol: pestanya "Backups" a Google Sheets
+// ══════════════════════════════════════════════════
+const MAX_BACKUPS = 3;
+const LS_BACKUP_IDX = 'mkt_v5_bkidx'; // índex del slot actual (0,1,2)
+
+function buildBackupData(snap){
+  return {
+    v:5,
+    exportedAt: new Date().toISOString(),
+    type:       'market-close',
+    summary:{
+      market:   snap.market?.name,
+      date:     snap.market?.date,
+      units:    snap.financials?.units,
+      gross:    snap.financials?.gross,
+      net:      snap.financials?.net,
+      bizumDay: snap.financials?.bizumDay,
+    },
+    snap,
+    catalogue,
+    transactionLog,
+    pendingSyncs,
+    bizumYears,
+    historial,
+  };
+}
+
+// Guarda al slot corresponent del localStorage i avança l'índex
+function saveLocalBackup(data){
+  try{
+    let idx = parseInt(localStorage.getItem(LS_BACKUP_IDX)||'0') % MAX_BACKUPS;
+    localStorage.setItem(`mkt_v5_bk${idx}`, JSON.stringify(data));
+    localStorage.setItem(LS_BACKUP_IDX, ((idx+1) % MAX_BACKUPS).toString());
+    localStorage.setItem('mkt_v5_bklast', Date.now().toString());
+    addLog('success',`💾 Backup local guardat (slot ${idx+1}/${MAX_BACKUPS})`);
+    updateBackupPill();
+    return idx;
+  }catch(e){
+    addLog('info','No s\'ha pogut guardar backup local: '+e.message);
+    return -1;
+  }
+}
+
+function updateBackupPill(){
+  const pill = document.getElementById('backupPill');
+  const dot  = document.getElementById('backupDot');
+  if(!pill || !dot) return;
+  const ts = parseInt(localStorage.getItem('mkt_v5_bklast')||'0');
+  if(!ts){
+    dot.style.background = 'var(--muted)';
+    pill.title = '💾 Sense backup — es crearà en tancar el mercat';
+    if(pill) pill.style.borderColor = 'var(--border)';
+    return;
+  }
+  const d       = new Date(ts);
+  const now     = new Date();
+  const diffMin = Math.round((now - d) / 60000);
+  let timeStr;
+  if(diffMin < 1)         timeStr = 'ara mateix';
+  else if(diffMin < 60)   timeStr = `fa ${diffMin}m`;
+  else if(diffMin < 1440) timeStr = `fa ${Math.floor(diffMin/60)}h`;
+  else                    timeStr = d.toLocaleDateString('ca-ES',{day:'2-digit',month:'2-digit'});
+
+  pill.title = `💾 Últim backup: ${timeStr} (${d.toLocaleTimeString('ca-ES',{hour:'2-digit',minute:'2-digit'})})`;
+
+  if(diffMin < 30){
+    dot.style.background = 'var(--green)';
+    dot.style.boxShadow  = '0 0 6px var(--green)';
+    pill.style.borderColor = 'rgba(62,207,142,0.4)';
+  } else if(diffMin < 120){
+    dot.style.background = 'var(--accent)';
+    dot.style.boxShadow  = 'none';
+    pill.style.borderColor = 'rgba(240,192,64,0.4)';
+  } else {
+    dot.style.background = 'var(--muted)';
+    dot.style.boxShadow  = 'none';
+    pill.style.borderColor = 'var(--border)';
+  }
+}
+
+// Retorna els backups locals existents (fins a 3), ordenats de més nou a més antic
+function getLocalBackups(){
+  const backups=[];
+  for(let i=0;i<MAX_BACKUPS;i++){
+    try{
+      const raw=localStorage.getItem(`mkt_v5_bk${i}`);
+      if(raw){
+        const d=JSON.parse(raw);
+        backups.push({slot:i, data:d, date:d.exportedAt, market:d.summary?.market});
+      }
+    }catch(e){}
+  }
+  return backups.sort((a,b)=>new Date(b.date)-new Date(a.date));
+}
+
+// Descarrega un backup local com a fitxer JSON (sota demanda des de Config)
+function downloadBackup(slot){
+  try{
+    const raw=localStorage.getItem(`mkt_v5_bk${slot}`);
+    if(!raw){showToast('No hi ha backup en aquest slot');return;}
+    const data=JSON.parse(raw);
+    const dateStr=(data.summary?.date||data.exportedAt?.slice(0,10)||'nd').replace(/-/g,'');
+    const name=(data.summary?.market||'mercat').replace(/[^a-zA-Z0-9]/g,'-').toLowerCase();
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`backup-${dateStr}-${name}.json`;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    showToast('📥 Backup descarregat');
+  }catch(e){showToast('Error: '+e.message);}
+}
+
+// Envia el backup a Google Sheets (pestanya Backups, màxim 3 files rotatives)
+async function saveCloudBackup(data){
+  if(!settings.scriptUrl) return;
+  try{
+    const payload={
+      action:    'saveBackup',
+      sheet:     settings.sheetName,
+      timestamp: new Date().toISOString(),
+      backup:    JSON.stringify(data), // JSON complet com a text
+      summary:   data.summary,
+    };
+    await fetch(settings.scriptUrl,{
+      method:'POST',
+      body:JSON.stringify(payload),
+      headers:{'Content-Type':'text/plain'},
+    });
+    addLog('success','☁️ Backup guardat al núvol (Google Sheets → Backups)');
+  }catch(e){
+    addLog('info','No s\'ha pogut guardar el backup al núvol: '+e.message);
+  }
+}
+
+// Punt d'entrada principal — crida des de closeMarketConfirm
+async function autoExportJSON(snap){
+  const data = buildBackupData(snap);
+  // 1. Guardar al slot local
+  saveLocalBackup(data);
+  // 2. Enviar al núvol
+  await saveCloudBackup(data);
+  // 3. Actualitzar UI de backups si estem a Config
+  renderBackupList();
+}
+
+// Renderitza la llista de backups a la secció Config
+function renderBackupList(){
+  const el = document.getElementById('backupList');
+  if(!el) return;
+
+  const backups   = getLocalBackups();
+  const lastTs    = parseInt(localStorage.getItem('mkt_v5_bklast')||'0');
+  const now       = Date.now();
+
+  // ── Capçalera: últim backup i proper ──
+  const pillCfg = document.getElementById('backupPillConfig');
+  if(pillCfg){
+    if(lastTs){
+      const d       = new Date(lastTs);
+      const diffMin = Math.round((now - lastTs) / 60000);
+      let ago;
+      if(diffMin < 1)         ago = 'ara mateix';
+      else if(diffMin < 60)   ago = `fa ${diffMin}m`;
+      else if(diffMin < 1440) ago = `fa ${Math.floor(diffMin/60)}h`;
+      else                    ago = d.toLocaleDateString('ca-ES',{day:'2-digit',month:'2-digit'});
+      pillCfg.textContent = `Últim: ${ago}`;
+      pillCfg.style.color = diffMin < 60 ? 'var(--green)' : 'var(--muted)';
+    } else {
+      pillCfg.textContent = 'Cap backup fet';
+      pillCfg.style.color = 'var(--muted)';
+    }
+  }
+
+  // ── Càlcul del proper auto-sync a Sheets ──
+  const minSinceSync  = lastAutoSync > 0 ? Math.round((now - lastAutoSync) / 60000) : null;
+  const minsLeft      = minSinceSync !== null ? Math.max(0, AUTO_SYNC_MINUTES - minSinceSync) : AUTO_SYNC_MINUTES;
+  const salesLeft     = Math.max(0, AUTO_SYNC_SALES - salesSinceLastSync);
+  let nextSyncTxt;
+  if(salesLeft === 0 || minsLeft === 0){
+    nextSyncTxt = '⏳ Sincronitzant ara…';
+  } else {
+    const parts = [];
+    if(minsLeft > 0)  parts.push(`${minsLeft} min`);
+    if(salesLeft > 0) parts.push(`${salesLeft} vendes`);
+    nextSyncTxt = `Proper sync Sheets: en ${parts.join(' o ')}`;
+  }
+
+  // ── Render ──
+  let html = '';
+
+  // Banner de proper backup / proper sync
+  html += `
+    <div style="display:flex;flex-direction:column;gap:6px;padding:10px 0 6px;">
+      <div style="display:flex;align-items:center;gap:8px;font-size:0.68rem;font-family:'DM Mono',monospace;color:var(--muted);">
+        <span>🔄</span>
+        <span>${escHtml(nextSyncTxt)}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:0.68rem;font-family:'DM Mono',monospace;color:var(--muted);">
+        <span>💾</span>
+        <span>Proper backup: en tancar el mercat</span>
+      </div>
+    </div>
+    <div style="height:1px;background:var(--border);margin-bottom:6px;"></div>`;
+
+  if(!backups.length){
+    html += `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0;color:var(--muted);">
+        <span style="font-size:1.4rem;">📭</span>
+        <div>
+          <div style="font-size:0.75rem;font-weight:700;color:var(--text);">Cap backup disponible</div>
+          <div style="font-size:0.62rem;font-family:'DM Mono',monospace;margin-top:2px;">
+            Tanca el mercat per crear el primer backup automàtic
+          </div>
+        </div>
+      </div>`;
+  } else {
+    html += backups.map((b,i) => {
+      const d      = new Date(b.date);
+      const isNew  = (now - d.getTime()) < 5 * 60000; // menys de 5 min
+      const tsStr  = d.toLocaleDateString('ca-ES',{day:'2-digit',month:'2-digit',year:'2-digit'})
+                   + ' ' + d.toLocaleTimeString('ca-ES',{hour:'2-digit',minute:'2-digit'});
+      const sum    = b.data?.summary || {};
+      const net    = parseFloat(sum.net || 0);
+      const label  = i === 0 ? '← més recent' : '';
+      return `
+      <div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);">
+        <div style="font-size:1.1rem;flex-shrink:0;">${isNew ? '🟢' : '💾'}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:0.78rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              ${escHtml(sum.market || '—')}
+            </span>
+            ${label ? `<span style="font-size:0.55rem;font-family:'DM Mono',monospace;color:var(--green);background:rgba(62,207,142,0.1);padding:1px 5px;border-radius:3px;">${label}</span>` : ''}
+          </div>
+          <div style="font-size:0.62rem;font-family:'DM Mono',monospace;color:var(--muted);margin-top:2px;">
+            ${tsStr} · ${sum.units||0} ud ·
+            <span style="color:${net>=0?'var(--green)':'var(--danger);'}">
+              ${net>=0?'+':''}${net.toFixed(2)}€
+            </span>
+          </div>
+        </div>
+        <button class="btn btn-ghost" onclick="downloadBackup(${b.slot})"
+          style="font-size:0.68rem;padding:4px 8px;flex-shrink:0;" title="Descarregar JSON">↓</button>
+        <button class="btn btn-ghost" onclick="restoreFromSlot(${b.slot})"
+          style="font-size:0.68rem;padding:4px 8px;flex-shrink:0;" title="Restaurar dades">↺</button>
+      </div>`;
+    }).join('');
+  }
+
+  el.innerHTML = html;
+}
+
+// Restaura un backup local
+function restoreFromSlot(slot){
+  try{
+    const raw=localStorage.getItem(`mkt_v5_bk${slot}`);
+    if(!raw){showToast('Slot buit');return;}
+    const data=JSON.parse(raw);
+    if(data.catalogue) catalogue=data.catalogue;
+    if(data.bizumYears) bizumYears=data.bizumYears;
+    if(data.historial) historial=data.historial;
+    if(data.transactionLog) transactionLog=data.transactionLog;
+    if(data.pendingSyncs) pendingSyncs=data.pendingSyncs;
+    if(data.snap?.market) market=Object.assign(market,data.snap.market);
+    if(data.snap?.payTotals) payTotals=data.snap.payTotals;
+    if(data.snap?.transactions!==undefined) transactions=data.snap.transactions;
+    save();renderProducts();renderCatalogue();updateAll();updateHeader();
+    showToast('✅ Backup restaurat correctament');
+    addLog('success',`Backup restaurat: ${data.summary?.market||'—'} (${data.summary?.date||'—'})`);
+  }catch(e){showToast('Error en restaurar: '+e.message);}
+}
+
+// ══════════════════════════════════════════════════
+//  SYNC
+// ══════════════════════════════════════════════════
+async function syncNow(isFinal=false){
+  if(!settings.scriptUrl){goSection('config');showToast('Configura primer la URL de Google Sheets');return false;}
+  setStatus('syncing','Sincronitzant…'); addLog('info','Iniciant sincronització…');
+  const f=calcFin(), yr=getBizumYear(currentYear());
+  const payload={
+    action:isFinal?'close':'sync', eventId:(isFinal?'close-':'sync-')+deviceId+'-'+Date.now(), deviceId, deviceName,
+    sheet:settings.sheetName,timestamp:new Date().toISOString(),market:{...market},
+    financials:{gross:f.gross.toFixed(2),prodCost:f.prodCost.toFixed(2),marketCost:f.mktCost.toFixed(2),travel:f.travel.toFixed(2),net:f.net.toFixed(2),margin:f.margin,totalUnits:f.units,ticket:f.ticket.toFixed(2),transactions,cashTotal:((payTotals.cash||0)+(market.caixaInicial||0)).toFixed(2),cardTotal:(payTotals.card||0).toFixed(2),bizumDay:(payTotals.bizum||0).toFixed(2),bizumYear:yr.total.toFixed(2),bizumYearPct:(yr.total/BIZ_ANNUAL*100).toFixed(1)},
+    products:catalogue.filter(p=>p.active).map(p=>({emoji:p.emoji,name:p.name,count:p.count,pvp:Number(p.pvp||0).toFixed(2),cost:Number(p.cost||0).toFixed(2),revenue:(p.count*p.pvp).toFixed(2),prodCost:(p.count*p.cost).toFixed(2),profit:(p.count*(p.pvp-p.cost)).toFixed(2),margin:p.pvp>0?Math.round((p.pvp-p.cost)/p.pvp*100)+'%':'—',stockLeft:p.stockInitial!==null?p.stock:'∞'})),
+    transactionLog: transactionLog.slice()
+  };
+  const queue = [...pendingSyncs, payload];
+  try{
+    for(const item of queue){
+      const res=await fetch(settings.scriptUrl,{method:'POST',body:JSON.stringify(item),headers:{'Content-Type':'text/plain'}});
+      const txt=await res.text(); if(!res.ok || !txt.toLowerCase().includes('ok')) throw new Error(txt||'HTTP '+res.status);
+    }
+    pendingSyncs=[]; salesSinceLastSync=0; lastAutoSync=Date.now(); save();
+    const now=new Date().toLocaleTimeString('ca-ES',{hour:'2-digit',minute:'2-digit'}); setEl('qs-sync','textContent',now); setStatus('connected','Connectat');
+    addLog('success',`Sincronitzat a les ${now}${isFinal?' · TANCAMENT':''}`); showToast(isFinal?'✅ Mercat tancat i enviat a Sheets!':'✅ Dades enviades a Google Sheets'); return true;
+  }catch(e){
+    pendingSyncs = queue.filter((x,i)=>i>=0); save(); setStatus('error','Offline · dades locals'); addLog('error','Sense connexió. Dades guardades localment i pendents de sync.'); showToast('📴 Sense connexió · dades guardades al mòbil'); return false;
+  }
+}
+async function testSync(){await syncNow(false);}
+
+// ══════════════════════════════════════════════════
+//  IMPORT FROM SHEETS
+// ══════════════════════════════════════════════════
+async function importFromSheets(){
+  if(!settings.scriptUrl){showToast('Configura primer Google Sheets');goSection('config');return;}
+  showToast('Important catàleg des de Sheets…');
+  try{
+    const url=settings.scriptUrl+(settings.scriptUrl.includes('?')?'&':'?')+'action=getCatalogue';
+    const res=await fetch(url);
+    const json=await res.json();
+    if(json.products&&json.products.length){
+      let added=0;
+      json.products.forEach(p=>{
+        if(!p.name)return;
+        const exists=catalogue.find(c=>c.name.toLowerCase()===p.name.toLowerCase());
+        if(!exists){
+          catalogue.push({id:Date.now()+Math.random(),emoji:p.emoji||'📦',name:p.name,cost:parseFloat(p.cost)||0,pvp:parseFloat(p.pvp)||0,active:true,count:0,stock:null,stockInitial:null});
+          added++;
+        }
+      });
+      save();renderCatalogue();renderProducts();
+      showToast(`✅ ${added} producte(s) importat(s)`);
+      addLog('success',`Importats ${added} productes des de Sheets`);
+    }else{showToast('El full "Catàleg" de Sheets és buit o no existeix');}
+  }catch(e){showToast('❌ Error en importar: '+e.message);}
+}
+
+// ══════════════════════════════════════════════════
+//  EXPORT CATALOGUE TO SHEETS
+// ══════════════════════════════════════════════════
+async function exportCatalogueToSheets(){
+  if(!settings.scriptUrl){showToast('Configura primer Google Sheets');goSection('config');return;}
+  if(!catalogue.length){showToast('El catàleg és buit');return;}
+  setStatus('syncing','Exportant catàleg…');
+  addLog('info',`Exportant ${catalogue.length} productes al full "Catàleg" de Sheets…`);
+  try{
+    const payload={
+      action:'exportCatalogue',
+      sheet:settings.sheetName,
+      timestamp:new Date().toISOString(),
+      catalogue:catalogue.map(p=>{
+        const cost = parseFloat(p.cost)||0;
+        const pvp  = parseFloat(p.pvp)||0;
+        const mg   = pvp>0?Math.round((pvp-cost)/pvp*100)+'%':'—';
+        return {
+          emoji:        p.emoji||'📦',
+          name:         p.name||'',
+          cost:         cost.toFixed(2),
+          pvp:          pvp.toFixed(2),
+          margin:       mg,
+          active:       p.active?'Sí':'No',
+          stockInitial: p.stockInitial!==null&&p.stockInitial!==undefined?p.stockInitial:'∞',
+        };
+      })
+    };
+    const res=await fetch(settings.scriptUrl,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain'}});
+    const text=await res.text();
+    if(res.ok||text.toLowerCase().includes('ok')){
+      setStatus('connected','Connectat');
+      addLog('success',`Catàleg exportat: ${catalogue.length} productes al full "Catàleg"`);
+      showToast(`✅ ${catalogue.length} productes exportats a Sheets`);
+    }else{throw new Error(text);}
+  }catch(e){
+    setStatus('error','Error de connexió');
+    addLog('error','Error exportant catàleg: '+(e.message||'error desconegut'));
+    showToast('❌ Error al exportar el catàleg');
+  }
+}
+
+
+function exportBackup(){
+  const data={v:6,ts:new Date().toISOString(),catalogue,market,settings,bizumYears,historial,payTotals,transactions,transactionLog,pendingSyncs,deviceId,deviceName};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`market-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  showToast('✅ Còpia de seguretat exportada');
+  addLog('info','Backup exportat.');
+}
+function importBackup(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(data.catalogue) catalogue=data.catalogue;
+      if(data.market)    market=Object.assign(market,data.market);
+      if(data.settings)  settings=Object.assign(settings,data.settings);
+      if(data.deviceName){deviceName=data.deviceName;localStorage.setItem(LS.deviceName,deviceName);}
+      if(data.bizumYears)bizumYears=data.bizumYears;
+      if(data.historial) historial=data.historial;
+      if(data.transactionLog) transactionLog=data.transactionLog;
+      if(data.pendingSyncs) pendingSyncs=data.pendingSyncs;
+      if(data.payTotals) payTotals=data.payTotals;
+      if(data.transactions!==undefined) transactions=data.transactions;
+      save();renderProducts();renderCatalogue();updateAll();updateHeader();
+      showToast('✅ Backup restaurat correctament');
+      addLog('success','Backup restaurat des de fitxer.');
+    }catch(err){showToast('❌ Error al llegir el fitxer: '+err.message);}
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
+
+// ══════════════════════════════════════════════════
+//  EXPORT CSV
+// ══════════════════════════════════════════════════
+function exportCSV(){
+  if(!historial.length){showToast('Sense historial per exportar');return;}
+  const rows=[['Data tancament','Mercat','Data mercat','Unitats','Ingressos','Cost prod.','Cost mercat','Desplaç.','Net','Marge%','Bizum','Transaccions']];
+  historial.forEach(h=>{
+    const f=h.financials||{};
+    rows.push([h.closedAt?.slice(0,10)||'',h.market?.name||'',h.market?.date||'',f.units||0,f.gross||0,f.prodCost||0,f.marketCost||0,f.travel||0,f.net||0,(f.margin||0)+'%',f.bizumDay||0,h.transactions||0]);
+  });
+  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`historial-mercats-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('✅ CSV exportat');
+}
+
+// ══════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════
+function populateCfgForm(){
+  document.getElementById('cfgName').value   =market.name||'';
+  document.getElementById('cfgDate').value   =market.date||'';
+  document.getElementById('cfgHours').value  =market.hours||'';
+  document.getElementById('cfgObj').value    =market.objective||'';
+  document.getElementById('cfgCaixa').value  =market.caixaInicial||'';
+  document.getElementById('cfgFee').value    =market.fee||'';
+  document.getElementById('cfgTravel').value =market.travel||'';
+  document.getElementById('cfgNotes').value  =market.notes||'';
+  document.getElementById('cfgScript').value =settings.scriptUrl||DEFAULT_SCRIPT;
+  document.getElementById('cfgSheet').value  =settings.sheetName||'Vendes';
+  const dn=document.getElementById('cfgDeviceName'); if(dn) dn.value=deviceName;
+  const paid=!!market.paid;
+  document.getElementById('togPaid').className='tog'+(paid?' on':'');
+  document.getElementById('feeField').style.display=paid?'':'none';
+  renderBackupList();
+}
+function togglePaid(){
+  const btn=document.getElementById('togPaid');
+  const on=btn.classList.contains('on');
+  btn.className='tog'+(on?'':' on');
+  document.getElementById('feeField').style.display=on?'':'none';
+}
+function saveAllConfig(){
+  market.name        =document.getElementById('cfgName').value.trim()||'Mercat';
+  market.date        =document.getElementById('cfgDate').value;
+  market.hours       =parseFloat(document.getElementById('cfgHours').value)||0;
+  market.objective   =parseFloat(document.getElementById('cfgObj').value)||0;
+  market.caixaInicial=parseFloat(document.getElementById('cfgCaixa').value)||0;
+  market.paid        =document.getElementById('togPaid').classList.contains('on');
+  market.fee         =parseFloat(document.getElementById('cfgFee').value)||0;
+  market.travel      =parseFloat(document.getElementById('cfgTravel').value)||0;
+  market.notes       =document.getElementById('cfgNotes').value.trim();
+  settings.scriptUrl =document.getElementById('cfgScript').value.trim()||DEFAULT_SCRIPT;  settings.sheetName =document.getElementById('cfgSheet').value.trim()||'Vendes';
+  const dn=document.getElementById('cfgDeviceName'); if(dn){deviceName=dn.value.trim()||deviceName; localStorage.setItem(LS.deviceName,deviceName);}
+  save();updateHeader();updateNoteDisplay();updateAll();
+  if(settings.scriptUrl) setStatus('connected','Configurat');
+  showToast('Configuració guardada');addLog('info','Configuració actualitzada.');
+}
+function updateHeader(){
+  document.getElementById('marketNameDisplay').textContent=market.name||'Mercat';
+  document.getElementById('drawerMarketName').textContent =market.name||'Mercat';
+  let sub='';
+  if(market.date){const d=new Date(market.date+'T12:00:00');sub+=d.toLocaleDateString('ca-ES',{weekday:'long',day:'numeric',month:'long'});}
+  if(market.hours>0) sub+=` · ${market.hours}h`;
+  const costs=[];
+  if(market.paid&&market.fee>0) costs.push(`mercat ${market.fee.toFixed(2)}€`);
+  if(market.travel>0) costs.push(`desplaç. ${market.travel.toFixed(2)}€`);
+  if(costs.length) sub+=' · '+costs.join(' + ');
+  document.getElementById('marketDateDisplay').textContent=sub||'— configura el mercat —';
+}
+
+// ══════════════════════════════════════════════════
+//  KEYBOARD SHORTCUTS
+// ══════════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  const tag=document.activeElement.tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+  if(e.key==='Escape'){closeDrawer();document.querySelectorAll('.modal-backdrop.open').forEach(m=>m.classList.remove('open'));return;}
+  if(e.key==='b'||e.key==='B'){document.getElementById('bizumVendaInput')?.focus();return;}
+  const n=parseInt(e.key);
+  if(n>=1&&n<=9){
+    const active=catalogue.filter(p=>p.active);
+    if(active[n-1]) increment(active[n-1].id,payMethod);
+  }
+});
+
+// ══════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════
+function setStatus(t,txt){
+  document.getElementById('statusDot').className='status-dot '+t;
+  document.getElementById('statusText').textContent=txt;
+}
+function addLog(type,text){
+  const list=document.getElementById('logList');
+  const time=new Date().toLocaleTimeString('ca-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const el=document.createElement('div');
+  el.className='log-entry '+type;
+  el.innerHTML=`<span class="log-time">${time}</span><span> ${escHtml(text)}</span>`;
+  list.insertBefore(el,list.firstChild);
+  if(list.children.length>80) list.removeChild(list.lastChild);
+}
+function clearLog(){document.getElementById('logList').innerHTML='';}
+let toastTimer;
+function showToast(msg){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  clearTimeout(toastTimer);
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);
+  toastTimer=setTimeout(()=>t.remove(),3400);
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+document.querySelectorAll('.modal-backdrop').forEach(b=>{
+  b.addEventListener('click',e=>{if(e.target===b)b.classList.remove('open');});
+});
+
+
+// ══════════════════════════════════════════════════
+//  iOS SAFARI TOUCH FIX
+//  Safari requires either cursor:pointer on divs OR
+//  a touchstart listener to fire click events.
+//  We attach a passive touchstart to the document so
+//  ALL divs with onclick become tappable on iOS.
+// ══════════════════════════════════════════════════
+document.addEventListener('touchstart', function(){}, {passive:true});
+
+// Event delegation for dynamically rendered cards
+// (product cards, catalogue cards, nav items, year tabs)
+document.addEventListener('click', function(e){
+  // Modal backdrop close
+  const mb = e.target.closest('.modal-backdrop');
+  if(mb && e.target === mb){ mb.classList.remove('open'); return; }
+
+  // Drawer backdrop
+  if(e.target.id === 'drawerBackdrop'){ closeDrawer(); return; }
+
+  // Nav items (in case onclick attr fails on iOS)
+  const ni = e.target.closest('.nav-item');
+  if(ni && ni.id){
+    const sec = ni.id.replace('nav-','');
+    if(sec) goSection(sec);
+    return;
+  }
+}, false);
+
+// ══════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════
+load();
+
+// Capa 2b: intentar recuperar des de sessionStorage si localStorage tenia 0 vendes
+const recovered = recoverFromSession();
+if(recovered){
+  addLog('info', `📦 Recuperades ${recovered} vendes des de la sessió anterior.`);
+}
+
+applyTheme();
+renderProducts();
+renderCatalogue();
+updateAll();
+updateHeader();
+updateNoteDisplay();
+
+// Capa 4: detectar sessió interrompuda
+checkInterruptedSession();
+
+// Inicialitzar temps de l'última sync
+lastAutoSync = Date.now();
+
+if(settings.scriptUrl) setStatus('connected','Configurat');
+else setStatus('','Sense configurar');
+updateBackupPill();
+renderBackupList();
+// Actualitzar el temps relatiu del backup cada minut
+setInterval(updateBackupPill, 60*1000);
+// Refrescar el panell de backups cada minut si l'usuari és a Config
+setInterval(()=>{ if(currentSection==='config') renderBackupList(); }, 60*1000);
+requestWakeLock();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
+</script>
+<script src="business-manager.js"></script>
+</body>
+</html>

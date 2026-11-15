@@ -46,3 +46,9 @@ Més endavant: iPhone/PWA → API Cloudflare → base de dades/Drive, amb sincro
 La facturació incorpora una classificació independent entre el tractament d'IVA i l'àmbit del RRSIF/VERI*FACTU. Cada factura permet indicar si s'ha d'incloure en VERI*FACTU o si queda fora d'àmbit, amb un motiu documentat. Les operacions exemptes o no subjectes a IVA no es consideren automàticament fora de VERI*FACTU.
 
 El mòdul genera localment un registre de facturació amb hash SHA-256 i encadenament, manté una cua de registres pendents i sincronitza aquests registres amb Google Sheets. La remissió real a l'AEAT encara requereix completar la connexió tècnica/autenticació amb els serveis de l'AEAT abans de posar el SIF en producció.
+
+
+## V10.2
+- Indicador de versió visible al capdamunt del menú desplegable "Espai de treball / Mercat".
+- Selector mostra explícitament la versió carregada: V10.2.
+- Service Worker amb nova clau de caché per evitar que Safari/PWA mantingui una versió anterior.
