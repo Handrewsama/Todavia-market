@@ -385,6 +385,10 @@ button.hamburger{background:var(--surface2);padding:0;}
 button#marketNameDisplay{background:none;border:none;font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);padding:0;text-align:left;}
 button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
 </style>
+
+<style>
+.bm-tabs{display:flex;gap:6px;overflow:auto;padding:4px 0 12px;position:sticky;top:0;background:var(--bg);z-index:4}.bm-tabs button{white-space:nowrap;border:1px solid var(--border);background:var(--surface2);color:var(--muted);border-radius:9px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:.68rem}.bm-tabs button.active{background:var(--text);color:var(--bg);border-color:var(--text)}.bm-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.bm-kpis>div{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px}.bm-kpis b{display:block;font-size:1.15rem}.bm-kpis span{font-size:.65rem;color:var(--muted);font-family:'DM Mono',monospace}.table-scroll{overflow:auto}.item-card{border:1px solid var(--border);background:var(--surface2);border-radius:12px;padding:12px;margin-bottom:8px}.row{display:flex;gap:8px}.row>*{flex:1}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions .btn{flex:1;min-width:120px}@media(max-width:600px){.bm-kpis{grid-template-columns:repeat(2,1fr)}.row{flex-direction:column}.bm-tabs{margin-right:-2px}}
+</style>
 </head>
 <body>
 <div class="wrapper">
@@ -839,9 +843,9 @@ let payTotals  = {cash:0,card:0,bizum:0};
 let transactions = 0;
 let transactionLog = []; // moviment real de cobrament: permet corregir sense assumir el mètode actual
 let pendingSyncs = [];   // cua offline: mai perdem una sincronització per falta de cobertura
-let deviceId = localStorage.getItem('mkt_v6_deviceId') || (crypto.randomUUID ? crypto.randomUUID() : 'dev-'+Date.now());
-let deviceName = localStorage.getItem('mkt_v6_deviceName') || ('iPhone · '+deviceId.slice(-4));
-localStorage.setItem('mkt_v6_deviceId', deviceId);
+let deviceId = localStorage.getItem('mkt_v7_deviceId') || (crypto.randomUUID ? crypto.randomUUID() : 'dev-'+Date.now());
+let deviceName = localStorage.getItem('mkt_v7_deviceName') || ('iPhone · '+deviceId.slice(-4));
+localStorage.setItem('mkt_v7_deviceId', deviceId);
 let currentSection = 'venda';
 let selectedBizumYear = new Date().getFullYear();
 let darkMode = true;
@@ -860,7 +864,7 @@ const LS = {
   biz:'mkt_v5_biz', bizd:'mkt_v5_bizd', hist:'mkt_v5_hist',
   pay:'mkt_v5_pay', txn:'mkt_v5_txn', dark:'mkt_v5_dark',
   session:'mkt_v5_session', // snapshot de sessió activa
-  txlog:'mkt_v6_txlog', pending:'mkt_v6_pending', deviceName:'mkt_v6_deviceName',
+  txlog:'mkt_v7_txlog', pending:'mkt_v7_pending', deviceName:'mkt_v7_deviceName',
 };
 
 // ── CAPA 1: save() agressiu — cada acció + interval ──
@@ -2408,5 +2412,6 @@ setInterval(()=>{ if(currentSection==='config') renderBackupList(); }, 60*1000);
 requestWakeLock();
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
 </script>
+<script src="business-manager.js"></script>
 </body>
 </html>
