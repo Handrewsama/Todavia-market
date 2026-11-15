@@ -1,57 +1,7 @@
-# CHANGELOG
-
-## v7 — Gestor de petit negoci
-- Afegida capa Gestió negoci.
-- Afegida botiga física amb obertura/tancament diari i moviments.
-- Afegida gestió de tallers i sessions.
-- Afegida gestió de clients.
-- Afegida facturació amb numeració, IVA i estat.
-- Afegida generació de PDF i compartició per correu des del mòbil.
-- Afegit emmagatzematge del PDF a la dada local de la factura.
-- Afegida sincronització de factures i PDFs a Google Drive via Apps Script.
-- Afegides despeses i factures de proveïdors.
-- Afegida caixa d'entrades/sortides.
-- Afegides dades d'empresa i configuració de factura.
-- Afegida exportació/importació de la gestió en JSON.
-- Refet Apps Script v7 amb upsert per ID i nous fulls.
-- Corregida estructura de `getTallers`.
-- Preparat el camí per a la futura versió online amb Cloudflare.
-
-## V8 — Fiscalitat autònoms (2026-11-15)
-- Nou mòdul Fiscalitat i obligacions trimestrals.
-- Pre-càlcul IVA repercutit/deduïble i diferencial per trimestre.
-- Pre-càlcul orientatiu de rendiment per IRPF i selecció 130/131.
-- Perfil fiscal configurable.
-- Exportació de llibre de factures emeses, rebudes i resums IVA/IRPF.
-- Factures de compra ampliades amb base, IVA, IVA deduïble, NIF i operació.
-- Google Sheets: Fiscalitat i Resum Fiscal.
-- Actualitzat service worker a v8.
-
-
-## V9 — VERI*FACTU
-- Nou apartat VERI*FACTU.
-- Separació entre tractament IVA (subjecta/exempta/no subjecta) i àmbit RRSIF.
-- Selector per factura: incloure a VERI*FACTU o fora d'àmbit amb motiu.
-- Registre de facturació local amb hash SHA-256 i encadenament.
-- Estat de remissió: pendent/acceptat/no generat.
-- Exportació CSV dels registres VERI*FACTU.
-- Sincronització dels registres a Google Sheets.
-- No es marca cap registre com enviat a AEAT fins que existeixi confirmació real.
-
-## V10.1 — Identificació visible de versió
-- Afegit el selector desplegable de versió al capçal del menú lateral, a la dreta d'«Espai de treball / Mercat».
-- La versió carregada actualment es mostra com a **V10**.
-
-
-## V10.2
-- Afegit indicador visible de versió al menú desplegable, a la dreta d'"Espai de treball / Mercat".
-- Versió actual: V10.2.
-- Actualitzada la clau del Service Worker per forçar renovació de caché.
-
-
-## V10.4 — Cache reset / anti-stale PWA
-- Neteja automàtica dels Service Workers antics.
-- Neteja automàtica de les caches `todavia-market-*`.
-- Service Worker nou `todavia-market-v10-3`.
-- L'HTML principal es carrega amb prioritat de xarxa per evitar versions antigues.
-- Versió visible actualitzada a V10.4.
+V10.6
+- Accés directe a Facturació al menú.
+- Corregida numeració de factura perquè una validació fallida no consumeixi número.
+- IVA 0 real per factures exemptes/no subjectes.
+- Suport de retenció IRPF en factura, PDF, CSV i càlcul fiscal.
+- Millorat detall de factura i estat VERI*FACTU.
+- Cache actualitzada a v10.6.

@@ -61,13 +61,13 @@ function writeEmpresa(c){
 function writeClients(arr){writeUpsert(CONFIG.sheetClients,['ID','Nom','NIF/CIF','Email','Adreça','CP','Ciutat'],arr.map(function(c){return [c.id,c.name,c.nif,c.email,c.address,c.postalCode,c.city];}),0);}
 function writeFactures(arr){
   var sh=getOrCreateSheet(SpreadsheetApp.getActiveSpreadsheet(),CONFIG.sheetFactures);
-  var h=['ID','Número','Data','Client','Client ID','Base (€)','IVA (€)','Total (€)','Estat','Notes','Creat','Actualitzat','Tractament IVA','SIF/VERI*FACTU','Motiu fora àmbit','Estat VERI*FACTU','Hash VERI*FACTU','PDF Drive ID','PDF Drive URL'];
+  var h=['ID','Número','Data','Client','Client ID','Base (€)','IVA (€)','Total (€)','Estat','Notes','Creat','Actualitzat','Tractament IVA','Retenció IRPF %','Retenció IRPF (€)','SIF/VERI*FACTU','Motiu fora àmbit','Estat VERI*FACTU','Hash VERI*FACTU','PDF Drive ID','PDF Drive URL'];
   ensureHeader(sh,h);
-  var rows=arr.map(function(i){var pdf=saveInvoicePdfToDrive(i);return [i.id,i.number,i.date,i.customerName,i.customerId,num(i.subtotal),num(i.tax),num(i.total),i.status||'',i.notes||'',i.createdAt||'',i.updatedAt||'',i.vatTreatment||'subjecta',i.sifApplicable===false?'Fora d\'àmbit':'VERI*FACTU',i.sifReason||'',i.verifactuStatus||'no_generat',i.verifactuHash||'',pdf.id||'',pdf.url||''];});
+  var rows=arr.map(function(i){var pdf=saveInvoicePdfToDrive(i);return [i.id,i.number,i.date,i.customerName,i.customerId,num(i.subtotal),num(i.tax),num(i.total),i.status||'',i.notes||'',i.createdAt||'',i.updatedAt||'',i.vatTreatment||'subjecta',num(i.irpfRetention),num(i.irpfAmount),i.sifApplicable===false?'Fora d\'àmbit':'VERI*FACTU',i.sifReason||'',i.verifactuStatus||'no_generat',i.verifactuHash||'',pdf.id||'',pdf.url||''];});
   upsertRows(sh,rows,0);
   var ls=getOrCreateSheet(SpreadsheetApp.getActiveSpreadsheet(),CONFIG.sheetLiniesFactures);
   ensureHeader(ls,['ID','Factura ID','Número','Descripció','Quantitat','Preu (€)','IVA %','Base (€)','IVA (€)','Total (€)']);
-  var lr=[];arr.forEach(function(i){(i.lines||[]).forEach(function(l){var base=num(l.qty)*num(l.price);var iva=base*num(l.vat)/100;lr.push([uidFallback(i.id+'-'+l.description+'-'+l.qty),i.id,i.number,l.description,num(l.qty),num(l.price),num(l.vat),base,iva,base+iva]);});});
+  var lr=[];arr.forEach(function(i){(i.lines||[]).forEach(function(l,idx){var base=num(l.qty)*num(l.price);var iva=base*num(l.vat)/100;lr.push([uidFallback(i.id+'-'+idx),i.id,i.number,l.description,num(l.qty),num(l.price),num(l.vat),base,iva,base+iva]);});});
   upsertRows(ls,lr,0);
 }
 function writeBotiga(arr){writeUpsert(CONFIG.sheetBotiga,['ID','Data','Obert','Tancat','Obertura','Tancament','Vendes (€)','Costos (€)','Net (€)','Notes','Moviments JSON'],arr.map(function(d){return [d.id,d.date,!d.closed,d.closed,d.openedAt||'',d.closedAt||'',num(d.sales),num(d.costs),num(d.sales)-num(d.costs),d.notes||'',JSON.stringify(d.movements||[])];}),0);}
@@ -85,14 +85,14 @@ function writeFiscalConfig(c){
 }
 function writeFiscalSummary(b){
   var sh=getOrCreateSheet(SpreadsheetApp.getActiveSpreadsheet(),'Resum Fiscal');
-  ensureHeader(sh,['ID','Any','Trimestre','IVA repercutit (€)','IVA deduïble (€)','IVA diferencial (€)','Ingressos base (€)','Despeses base (€)','Rendiment orientatiu (€)']);
+  ensureHeader(sh,['ID','Any','Trimestre','IVA repercutit (€)','IVA deduïble (€)','IVA diferencial (€)','Retencions IRPF (€)','Ingressos base (€)','Despeses base (€)','Rendiment orientatiu (€)']);
   var y=new Date().getFullYear(), inv=b.invoices||[], pur=b.purchaseInvoices||[], exp=b.expenses||[];
   for(var q=1;q<=4;q++){
-    var from=new Date(y,(q-1)*3,1), to=new Date(y,q*3,0,23,59,59), out=0,input=0,income=0,cost=0;
-    inv.forEach(function(i){var d=new Date(i.date);if(i.status!=='cancel·lada'&&d>=from&&d<=to){out+=num(i.tax);income+=num(i.subtotal);}});
+    var from=new Date(y,(q-1)*3,1), to=new Date(y,q*3,0,23,59,59), out=0,input=0,income=0,cost=0,ret=0;
+    inv.forEach(function(i){var d=new Date(i.date);if(i.status!=='cancel·lada'&&d>=from&&d<=to){out+=num(i.tax);ret+=num(i.irpfAmount);income+=num(i.subtotal);}});
     pur.forEach(function(i){var d=new Date(i.date);if(d>=from&&d<=to){input+=num(i.deductibleVat!==undefined?i.deductibleVat:i.iva);cost+=num(i.base!==undefined?i.base:i.total/(1+num(i.vat)/100));}});
     exp.forEach(function(i){var d=new Date(i.date);if(d>=from&&d<=to)cost+=num(i.amount);});
-    upsertRows(sh,[[y+'-'+q,y,q,out,input,out-input,income,cost,Math.max(0,income-cost)]],0);
+    upsertRows(sh,[[y+'-'+q,y,q,out,input,out-input,ret,income,cost,Math.max(0,income-cost)]],0);
   }
 }
 
