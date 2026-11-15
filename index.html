@@ -422,8 +422,18 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
 <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()" role="button" tabindex="-1"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-header">
-    <div class="drawer-sub">Espai de treball</div>
-    <div class="drawer-market" id="drawerMarketName">Mercat</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;">
+      <div style="min-width:0;">
+        <div class="drawer-sub">Espai de treball</div>
+        <div class="drawer-market" id="drawerMarketName">Mercat</div>
+      </div>
+      <label style="display:flex;align-items:center;gap:5px;flex-shrink:0;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);" title="Versió de l'aplicació">
+        <span>Versió</span>
+        <select id="appVersionSelect" aria-label="Versió de l'aplicació" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:5px 6px;font-family:'DM Mono',monospace;font-size:.62rem;max-width:76px;">
+          <option value="V10" selected>V10</option>
+        </select>
+      </label>
+    </div>
   </div>
   <div class="nav-scroll">
     <div class="nav-group">

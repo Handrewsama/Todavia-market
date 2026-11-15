@@ -37,3 +37,7 @@
 - Exportació CSV dels registres VERI*FACTU.
 - Sincronització dels registres a Google Sheets.
 - No es marca cap registre com enviat a AEAT fins que existeixi confirmació real.
+
+## V10.1 — Identificació visible de versió
+- Afegit el selector desplegable de versió al capçal del menú lateral, a la dreta d'«Espai de treball / Mercat».
+- La versió carregada actualment es mostra com a **V10**.
