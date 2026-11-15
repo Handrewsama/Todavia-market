@@ -1,6 +1,5 @@
-# Changelog V11.1
-
-- Navegació Business Manager amb fallback visible.
-- Error boundary per evitar pantalles buides.
-- Versió V11.1 i cache nova.
-- Manté localStorage existent.
+# V11.0
+- Navegació de negoci robusta i independent del carregament dinàmic.
+- Fallback visible si el mòdul no està disponible.
+- Cache/Service Worker renovats.
+- Unificació del Business Manager embegut i extern.
