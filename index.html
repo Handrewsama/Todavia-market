@@ -385,7 +385,7 @@ button.hamburger{background:var(--surface2);padding:0;}
 button#marketNameDisplay{background:none;border:none;font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);padding:0;text-align:left;}
 button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
 
-/* V10.4 — calculadora de vendes botiga */
+/* V11.0 — calculadora de vendes botiga */
 .shop-calc{margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
 .shop-product-buttons{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
 .shop-calc-lines{display:flex;flex-direction:column;gap:6px}
@@ -440,7 +440,7 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
       <label style="display:flex;align-items:center;gap:5px;flex-shrink:0;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);" title="Versió de l'aplicació">
         <span style="opacity:.75">Versió</span>
         <select id="appVersionSelect" aria-label="Versió de l'aplicació" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:5px 6px;font-family:'DM Mono',monospace;font-size:.62rem;max-width:92px;font-weight:800;cursor:pointer;">
-          <option value="V10.8" selected>V10.8</option>
+          <option value="V11.0" selected>V11.0</option>
         </select>
       </label>
     </div>
@@ -471,16 +471,16 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
         <span class="nav-icon">📦</span><span class="nav-label">Catàleg</span>
         <span class="nav-badge" id="nb-cataleg">0</span>
       </button>
-      <button type="button" class="nav-item" id="nav-business-static" onclick="BM.openBusinessTab('resum')">
+      <button type="button" class="nav-item" id="nav-business-static" onclick="openBusinessTab('resum')">
         <span class="nav-icon">🧰</span><span class="nav-label">Gestió negoci</span>
       </button>
-      <button type="button" class="nav-item" id="nav-shop-static" onclick="BM.openBusinessTab('botiga')">
+      <button type="button" class="nav-item" id="nav-shop-static" onclick="openBusinessTab('botiga')">
         <span class="nav-icon">🏪</span><span class="nav-label">Botiga física</span>
       </button>
-      <button type="button" class="nav-item" id="nav-workshop-static" onclick="BM.openBusinessTab('tallers')">
+      <button type="button" class="nav-item" id="nav-workshop-static" onclick="openBusinessTab('tallers')">
         <span class="nav-icon">🎨</span><span class="nav-label">Tallers</span>
       </button>
-      <button type="button" class="nav-item" id="nav-invoice-static" onclick="BM.openBusinessTab('factures')">
+      <button type="button" class="nav-item" id="nav-invoice-static" onclick="openBusinessTab('factures')">
         <span class="nav-icon">🧾</span><span class="nav-label">Facturació</span>
       </button>
       <button type="button" class="nav-item" id="nav-config" onclick="goSection('config')">
@@ -804,7 +804,7 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
   </div>
 </div>
 
-<!-- ═══════ GESTIÓ NEGOCI — CONTENIDOR ESTÀTIC V10.8 ═══════ -->
+<!-- ═══════ GESTIÓ NEGOCI — CONTENIDOR ESTÀTIC V11.0 ═══════ -->
 <div class="section" id="section-business">
   <div class="section-header">
     <div><div class="section-title">🧰 Gestió del negoci</div><div class="section-subtitle">Mercats · botiga · tallers · factures · clients · despeses · caixa</div></div>
@@ -813,7 +813,7 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
   <div class="bm-tabs">
     <button data-bmtab="resum">📊 Resum</button><button data-bmtab="botiga">🏪 Botiga</button><button data-bmtab="tallers">🎨 Tallers</button><button data-bmtab="factures">🧾 Factures</button><button data-bmtab="clients">👥 Clients</button><button data-bmtab="despeses">💸 Despeses</button><button data-bmtab="compres">📥 Compres</button><button data-bmtab="caixa">💶 Caixa</button><button data-bmtab="fiscal">🧮 Fiscalitat</button><button data-bmtab="verifactu">🧾 VERI*FACTU</button><button data-bmtab="empresa">⚙ Empresa</button>
   </div>
-  <div id="bm-content"><div class="panel"><div style="padding:18px">Carregant Gestió negoci…</div></div></div>
+  <div id="bm-content"><div class="panel" id="bm-boot-panel"><div class="panel-header"><span class="panel-title">🧰 Gestió negoci</span><span class="small muted">V11.0</span></div><div style="padding:18px"><b>Preparant el mòdul…</b><p class="muted" style="margin-top:8px">Si aquesta pantalla no canvia, toca «Reintentar».</p><button class="btn btn-primary" style="margin-top:12px" onclick="openBusinessTab('resum')">↻ Reintentar</button></div></div></div>
 </div>
 
 </div><!-- /wrapper -->
@@ -1121,6 +1121,35 @@ function goSection(name){
   if(name==='historial')renderHistorial();
   if(name==='bizum')    renderBizumSection();
 }
+function openBusinessTab(tab){
+  try{
+    const sec=document.getElementById('section-business');
+    if(!sec) throw new Error('No s’ha trobat la secció Gestió negoci.');
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    sec.classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    const navMap={resum:'nav-business-static',botiga:'nav-shop-static',tallers:'nav-workshop-static',factures:'nav-invoice-static'};
+    const nav=document.getElementById(navMap[tab]||'nav-business-static');
+    if(nav) nav.classList.add('active');
+    currentSection='business';
+    if(typeof closeDrawer==='function') closeDrawer();
+    if(window.BM && typeof window.BM.openBusinessTab==='function'){
+      window.BM.openBusinessTab(tab||'resum');
+    }else{
+      const c=document.getElementById('bm-content');
+      if(c)c.innerHTML='<div class="panel" style="border-color:var(--accent)"><div class="panel-header"><span class="panel-title">🧰 Gestió negoci</span></div><div style="padding:16px"><b>El mòdul encara s’està carregant.</b><p class="muted" style="margin-top:8px">Torna-ho a provar.</p><button class="btn btn-primary" style="margin-top:12px" onclick="openBusinessTab(\''+(tab||'resum')+'\')">↻ Reintentar</button></div></div>';
+    }
+    window.scrollTo({top:0,behavior:'auto'});
+  }catch(e){
+    console.error('Business navigation',e);
+    const sec=document.getElementById('section-business');
+    if(sec)sec.classList.add('active');
+    const c=document.getElementById('bm-content');
+    if(c)c.innerHTML='<div class="panel" style="border-color:var(--danger)"><div class="panel-header"><span class="panel-title">⚠️ Error del mòdul</span></div><div style="padding:16px"><b>No s’ha pogut carregar aquesta secció.</b><div class="muted" style="margin-top:8px">'+(e.message||e)+'</div><button class="btn btn-primary" style="margin-top:12px" onclick="location.reload()">↻ Recarregar</button></div></div>';
+  }
+}
+window.openBusinessTab=openBusinessTab;
+
 function toggleDrawer(){const o=document.getElementById('drawer').classList.contains('open');o?closeDrawer():openDrawer();}
 function openDrawer(){['drawer','drawerBackdrop','hamburgerBtn'].forEach(id=>document.getElementById(id).classList.add('open'));}
 function closeDrawer(){['drawer','drawerBackdrop','hamburgerBtn'].forEach(id=>document.getElementById(id).classList.remove('open'));}
@@ -2464,7 +2493,7 @@ if('serviceWorker' in navigator){
         const keys = await caches.keys();
         await Promise.all(keys.filter(k=>/^todavia-market-/i.test(k)).map(k=>caches.delete(k)));
       }
-      await navigator.serviceWorker.register('./sw.js?v=10.7');
+      await navigator.serviceWorker.register('./sw.js?v=11.0',{updateViaCache:'none'});
     }catch(e){ console.warn('SW update:',e); }
   });
 }
@@ -2472,7 +2501,7 @@ if('serviceWorker' in navigator){
 
 
 <script>
-/* Todavía Business Manager V10.6 — embedded for reliable iPhone/PWA loading */
+/* Todavía Business Manager V11.0 — embedded for reliable iPhone/PWA loading */
 /* Todavía Business Manager v7 — mòdul de gestió de petit negoci
    Offline-first. Les dades d'aquest mòdul viuen al dispositiu i es poden sincronitzar a Google Sheets/Drive.
 */
@@ -2648,7 +2677,7 @@ function importData(ev){const f=ev.target.files&&ev.target.files[0];if(!f)return
 function quickSave(){saveBM();toast('Gestió guardada al dispositiu')}
 async function syncAll(){if(!window.settings?.scriptUrl && typeof settings==='undefined'){toast('Configura primer Google Sheets');return}const url=(typeof settings!=='undefined'&&settings.scriptUrl)||'';if(!url){toast('Configura primer Google Sheets');return}const payload={action:'syncBusiness',eventId:uid('bm'),timestamp:new Date().toISOString(),deviceId:window.deviceId||'',deviceName:window.deviceName||'',business:bm};try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});const j=await r.json();if(j.status==='ok'){bm.pending=[];saveBM();toast('✓ Gestió sincronitzada a Sheets/Drive')}else throw Error(j.message||'Error')}catch(e){bm.pending.push({payload,error:e.message,ts:new Date().toISOString()});saveBM();toast('📴 Guardat al mòbil; sync pendent')}}
 window.BM={openBusiness,openBusinessTab,renderBM,newClient,editClient,newInvoice,editInvoice,newExpense,newPurchase,newCash,newWorkshop,editWorkshop,addWorkshopSession,saveCompany,openShop,closeShop,invoiceActions,downloadInvoice,shareInvoice,exportInvoicesCSV,quickSave,exportData,importData,syncAll,shopSale,shopCost,shopCalcAdd,shopCalcRender,shopCalcClear,shopCalcCheckout,shopCalcCustom,saveTaxProfile,saveSifMode,saveSifDefault,toggleSifFields,exportVerifactuCSV,markPendingForReview,exportFiscalCSV,closeModal:()=>document.getElementById('bmModal')?.remove(),renderInvoiceRows};
-window.addEventListener('load',()=>{try{const v=document.getElementById('appVersionSelect');if(v)v.value='V10.8';}catch(e){}});
+window.addEventListener('load',()=>{try{const v=document.getElementById('appVersionSelect');if(v)v.value='V11.0';}catch(e){}});
 window.addEventListener('load',ensureUI);document.addEventListener('DOMContentLoaded',ensureUI);
 })();
 
