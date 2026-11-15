@@ -1,4 +1,4 @@
-const CACHE='todavia-market-v10-3';
+const CACHE='todavia-market-v10-4';
 const OLD_CACHES=['todavia-market-v8','todavia-market-v9','todavia-market-v10','todavia-market-v10-1','todavia-market-v10-2'];
 const ASSETS=['./','./index.html','./manifest.json','./icon.svg','./business-manager.js','./google-apps-script.js'];
 

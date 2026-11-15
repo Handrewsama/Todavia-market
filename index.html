@@ -384,6 +384,16 @@ button.nav-item{width:100%;text-align:left;background:none;border:none;font-fami
 button.hamburger{background:var(--surface2);padding:0;}
 button#marketNameDisplay{background:none;border:none;font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);padding:0;text-align:left;}
 button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
+
+/* V10.4 — calculadora de vendes botiga */
+.shop-calc{margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
+.shop-product-buttons{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.shop-calc-lines{display:flex;flex-direction:column;gap:6px}
+.shop-calc-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px}
+.shop-calc-row input{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px;text-align:center;font-family:'DM Mono',monospace}
+.shop-calc-line{min-width:75px;text-align:right;font-family:'DM Mono',monospace}
+.shop-calc-total{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:12px;border-radius:9px;background:rgba(62,207,142,.08);font-family:'DM Mono',monospace}
+.shop-calc-total strong{font-size:1.25rem;color:var(--green)}
 </style>
 
 <style>
@@ -430,7 +440,7 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
       <label style="display:flex;align-items:center;gap:5px;flex-shrink:0;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);" title="Versió de l'aplicació">
         <span style="opacity:.75">Versió</span>
         <select id="appVersionSelect" aria-label="Versió de l'aplicació" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:5px 6px;font-family:'DM Mono',monospace;font-size:.62rem;max-width:92px;font-weight:800;cursor:pointer;">
-          <option value="V10.3" selected>V10.3</option>
+          <option value="V10.4" selected>V10.4</option>
         </select>
       </label>
     </div>

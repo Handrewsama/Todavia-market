@@ -49,9 +49,9 @@
 - Actualitzada la clau del Service Worker per forçar renovació de caché.
 
 
-## V10.3 — Cache reset / anti-stale PWA
+## V10.4 — Cache reset / anti-stale PWA
 - Neteja automàtica dels Service Workers antics.
 - Neteja automàtica de les caches `todavia-market-*`.
 - Service Worker nou `todavia-market-v10-3`.
 - L'HTML principal es carrega amb prioritat de xarxa per evitar versions antigues.
-- Versió visible actualitzada a V10.3.
+- Versió visible actualitzada a V10.4.

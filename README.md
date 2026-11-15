@@ -54,5 +54,5 @@ El mòdul genera localment un registre de facturació amb hash SHA-256 i encaden
 - Service Worker amb nova clau de caché per evitar que Safari/PWA mantingui una versió anterior.
 
 
-### V10.3 — Cache
+### V10.4 — Cache
 Aquesta versió incorpora neteja automàtica de Service Workers i caches antigues per evitar que iOS/Safari mantingui una versió anterior de la PWA.
