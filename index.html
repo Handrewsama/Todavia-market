@@ -385,7 +385,7 @@ button.hamburger{background:var(--surface2);padding:0;}
 button#marketNameDisplay{background:none;border:none;font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);padding:0;text-align:left;}
 button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
 
-/* V11.0 — calculadora de vendes botiga */
+/* V11.1 — calculadora de vendes botiga */
 .shop-calc{margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
 .shop-product-buttons{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
 .shop-calc-lines{display:flex;flex-direction:column;gap:6px}
@@ -394,6 +394,13 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
 .shop-calc-line{min-width:75px;text-align:right;font-family:'DM Mono',monospace}
 .shop-calc-total{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:12px;border-radius:9px;background:rgba(62,207,142,.08);font-family:'DM Mono',monospace}
 .shop-calc-total strong{font-size:1.25rem;color:var(--green)}
+
+/* V11.1 — Business Manager safe rendering shell */
+#section-business{min-height:calc(100vh - 120px);}
+#section-business #bm-content{min-height:220px;}
+.bm-safe-shell{min-height:220px;display:block;}
+.bm-safe-shell .panel{display:block!important;visibility:visible!important;opacity:1!important;}
+.bm-runtime-error{border-color:var(--danger)!important;}
 </style>
 
 <style>
@@ -440,7 +447,7 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
       <label style="display:flex;align-items:center;gap:5px;flex-shrink:0;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);" title="Versió de l'aplicació">
         <span style="opacity:.75">Versió</span>
         <select id="appVersionSelect" aria-label="Versió de l'aplicació" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:5px 6px;font-family:'DM Mono',monospace;font-size:.62rem;max-width:92px;font-weight:800;cursor:pointer;">
-          <option value="V11.0" selected>V11.0</option>
+          <option value="V11.1" selected>V11.1</option>
         </select>
       </label>
     </div>
@@ -804,7 +811,7 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
   </div>
 </div>
 
-<!-- ═══════ GESTIÓ NEGOCI — CONTENIDOR ESTÀTIC V11.0 ═══════ -->
+<!-- ═══════ GESTIÓ NEGOCI — CONTENIDOR ESTÀTIC V11.1 ═══════ -->
 <div class="section" id="section-business">
   <div class="section-header">
     <div><div class="section-title">🧰 Gestió del negoci</div><div class="section-subtitle">Mercats · botiga · tallers · factures · clients · despeses · caixa</div></div>
@@ -813,7 +820,7 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
   <div class="bm-tabs">
     <button data-bmtab="resum">📊 Resum</button><button data-bmtab="botiga">🏪 Botiga</button><button data-bmtab="tallers">🎨 Tallers</button><button data-bmtab="factures">🧾 Factures</button><button data-bmtab="clients">👥 Clients</button><button data-bmtab="despeses">💸 Despeses</button><button data-bmtab="compres">📥 Compres</button><button data-bmtab="caixa">💶 Caixa</button><button data-bmtab="fiscal">🧮 Fiscalitat</button><button data-bmtab="verifactu">🧾 VERI*FACTU</button><button data-bmtab="empresa">⚙ Empresa</button>
   </div>
-  <div id="bm-content"><div class="panel" id="bm-boot-panel"><div class="panel-header"><span class="panel-title">🧰 Gestió negoci</span><span class="small muted">V11.0</span></div><div style="padding:18px"><b>Preparant el mòdul…</b><p class="muted" style="margin-top:8px">Si aquesta pantalla no canvia, toca «Reintentar».</p><button class="btn btn-primary" style="margin-top:12px" onclick="openBusinessTab('resum')">↻ Reintentar</button></div></div></div>
+  <div id="bm-content"><div class="panel" id="bm-boot-panel"><div class="panel-header"><span class="panel-title">🧰 Gestió negoci</span><span class="small muted">V11.1</span></div><div style="padding:18px"><b>Gestió negoci preparada.</b><p class="muted" style="margin-top:8px">Si aquesta pantalla no canvia, toca «Reintentar».</p><button class="btn btn-primary" style="margin-top:12px" onclick="openBusinessTab('resum')">↻ Reintentar</button></div></div></div>
 </div>
 
 </div><!-- /wrapper -->
@@ -2501,7 +2508,7 @@ if('serviceWorker' in navigator){
 
 
 <script>
-/* Todavía Business Manager V11.0 — embedded for reliable iPhone/PWA loading */
+/* Todavía Business Manager V11.1 — embedded for reliable iPhone/PWA loading */
 /* Todavía Business Manager v7 — mòdul de gestió de petit negoci
    Offline-first. Les dades d'aquest mòdul viuen al dispositiu i es poden sincronitzar a Google Sheets/Drive.
 */
@@ -2677,10 +2684,70 @@ function importData(ev){const f=ev.target.files&&ev.target.files[0];if(!f)return
 function quickSave(){saveBM();toast('Gestió guardada al dispositiu')}
 async function syncAll(){if(!window.settings?.scriptUrl && typeof settings==='undefined'){toast('Configura primer Google Sheets');return}const url=(typeof settings!=='undefined'&&settings.scriptUrl)||'';if(!url){toast('Configura primer Google Sheets');return}const payload={action:'syncBusiness',eventId:uid('bm'),timestamp:new Date().toISOString(),deviceId:window.deviceId||'',deviceName:window.deviceName||'',business:bm};try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});const j=await r.json();if(j.status==='ok'){bm.pending=[];saveBM();toast('✓ Gestió sincronitzada a Sheets/Drive')}else throw Error(j.message||'Error')}catch(e){bm.pending.push({payload,error:e.message,ts:new Date().toISOString()});saveBM();toast('📴 Guardat al mòbil; sync pendent')}}
 window.BM={openBusiness,openBusinessTab,renderBM,newClient,editClient,newInvoice,editInvoice,newExpense,newPurchase,newCash,newWorkshop,editWorkshop,addWorkshopSession,saveCompany,openShop,closeShop,invoiceActions,downloadInvoice,shareInvoice,exportInvoicesCSV,quickSave,exportData,importData,syncAll,shopSale,shopCost,shopCalcAdd,shopCalcRender,shopCalcClear,shopCalcCheckout,shopCalcCustom,saveTaxProfile,saveSifMode,saveSifDefault,toggleSifFields,exportVerifactuCSV,markPendingForReview,exportFiscalCSV,closeModal:()=>document.getElementById('bmModal')?.remove(),renderInvoiceRows};
-window.addEventListener('load',()=>{try{const v=document.getElementById('appVersionSelect');if(v)v.value='V11.0';}catch(e){}});
+window.addEventListener('load',()=>{try{const v=document.getElementById('appVersionSelect');if(v)v.value='V11.1';}catch(e){}});
 window.addEventListener('load',ensureUI);document.addEventListener('DOMContentLoaded',ensureUI);
 })();
 
+</script>
+
+<script>
+/* V11.1 SAFE BUSINESS NAVIGATION
+   This layer is intentionally independent from the Business Manager renderer.
+   It guarantees visible feedback even if a renderer throws. */
+(function(){
+  const labels={
+    resum:'📊 Resum',botiga:'🏪 Botiga física',tallers:'🎨 Tallers',factures:'🧾 Facturació',
+    clients:'👥 Clients',despeses:'💸 Despeses',compres:'📥 Compres',caixa:'💶 Caixa',fiscal:'🧮 Fiscalitat',verifactu:'🧾 VERI*FACTU',empresa:'⚙ Empresa'
+  };
+  function safeShell(tab){
+    const c=document.getElementById('bm-content');
+    if(!c)return;
+    const label=labels[tab]||labels.resum;
+    c.innerHTML='<div class="bm-safe-shell"><div class="panel"><div class="panel-header"><span class="panel-title">'+label+'</span><span class="small muted">V11.1</span></div><div style="padding:18px"><b>Carregant...</b><p class="muted" style="margin-top:8px">Preparant el mòdul. Si hi ha un error, es mostrarà aquí.</p></div></div></div>';
+  }
+  function safeOpen(tab){
+    tab=tab||'resum';
+    try{
+      const sec=document.getElementById('section-business');
+      if(!sec) throw new Error('No s’ha trobat section-business');
+      document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+      sec.classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+      const ids={resum:'nav-business-static',botiga:'nav-shop-static',tallers:'nav-workshop-static',factures:'nav-invoice-static'};
+      const nav=document.getElementById(ids[tab]||'nav-business-static');
+      if(nav)nav.classList.add('active');
+      currentSection='business';
+      if(typeof closeDrawer==='function')closeDrawer();
+      safeShell(tab);
+      window.scrollTo(0,0);
+      setTimeout(function(){
+        try{
+          if(!window.BM || typeof window.BM.openBusinessTab!=='function') throw new Error('El Business Manager no s’ha inicialitzat.');
+          window.BM.openBusinessTab(tab);
+        }catch(e){
+          const c=document.getElementById('bm-content');
+          if(c)c.innerHTML='<div class="bm-safe-shell"><div class="panel bm-runtime-error"><div class="panel-header"><span class="panel-title">⚠️ Error del mòdul</span><span class="small muted">V11.1</span></div><div style="padding:18px"><b>No s’ha pogut carregar '+(labels[tab]||'aquesta secció')+'.</b><p class="muted" style="margin-top:10px;white-space:pre-wrap">'+String(e&&e.message||e)+'</p><div class="actions" style="margin-top:14px"><button class="btn btn-primary" onclick="openBusinessTab(\''+tab+'\')">↻ Reintentar</button><button class="btn btn-ghost" onclick="location.reload()">Recarregar aplicació</button></div></div></div></div>';
+          console.error('V11.1 business renderer',e);
+        }
+      },0);
+    }catch(e){
+      console.error('V11.1 business navigation',e);
+      const sec=document.getElementById('section-business');
+      if(sec){sec.classList.add('active');}
+      const c=document.getElementById('bm-content');
+      if(c)c.innerHTML='<div class="panel bm-runtime-error"><div class="panel-header"><span class="panel-title">⚠️ Error de navegació</span></div><div style="padding:18px">'+String(e&&e.message||e)+'</div></div>';
+    }
+  }
+  window.openBusinessTab=safeOpen;
+  window.addEventListener('error',function(ev){
+    const sec=document.getElementById('section-business');
+    if(!sec||!sec.classList.contains('active'))return;
+    const c=document.getElementById('bm-content');
+    if(c && (!c.innerText.trim() || c.innerText.trim()==='Carregant...')){
+      c.innerHTML='<div class="panel bm-runtime-error"><div class="panel-header"><span class="panel-title">⚠️ Error JavaScript</span></div><div style="padding:18px"><p>'+String(ev.message||'Error desconegut')+'</p><button class="btn btn-primary" style="margin-top:12px" onclick="location.reload()">↻ Recarregar</button></div></div>';
+    }
+  });
+})();
 </script>
 </body>
 </html>
