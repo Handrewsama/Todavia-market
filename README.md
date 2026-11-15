@@ -1,2 +1,3 @@
-# Todavía Market Manager V11.0
-Versió estabilitzada amb navegació estàtica de Gestió negoci, botiga, tallers i facturació.
+Todavía Market Manager V11.3
+
+Inclou biblioteca local d’arxius generats amb IndexedDB i opció «Desar a Fitxers» mitjançant el menú natiu d’iOS.

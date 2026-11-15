@@ -385,7 +385,7 @@ button.hamburger{background:var(--surface2);padding:0;}
 button#marketNameDisplay{background:none;border:none;font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);padding:0;text-align:left;}
 button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
 
-/* V11.0 — calculadora de vendes botiga */
+/* V11.3 — calculadora de vendes botiga */
 .shop-calc{margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
 .shop-product-buttons{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
 .shop-calc-lines{display:flex;flex-direction:column;gap:6px}
@@ -394,6 +394,13 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
 .shop-calc-line{min-width:75px;text-align:right;font-family:'DM Mono',monospace}
 .shop-calc-total{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:12px;border-radius:9px;background:rgba(62,207,142,.08);font-family:'DM Mono',monospace}
 .shop-calc-total strong{font-size:1.25rem;color:var(--green)}
+
+/* V11.3 — Business Manager safe rendering shell */
+#section-business{min-height:calc(100vh - 120px);}
+#section-business #bm-content{min-height:220px;}
+.bm-safe-shell{min-height:220px;display:block;}
+.bm-safe-shell .panel{display:block!important;visibility:visible!important;opacity:1!important;}
+.bm-runtime-error{border-color:var(--danger)!important;}
 </style>
 
 <style>
@@ -440,7 +447,7 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
       <label style="display:flex;align-items:center;gap:5px;flex-shrink:0;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);" title="Versió de l'aplicació">
         <span style="opacity:.75">Versió</span>
         <select id="appVersionSelect" aria-label="Versió de l'aplicació" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:5px 6px;font-family:'DM Mono',monospace;font-size:.62rem;max-width:92px;font-weight:800;cursor:pointer;">
-          <option value="V11.0" selected>V11.0</option>
+          <option value="V11.3" selected>V11.3</option>
         </select>
       </label>
     </div>
@@ -477,11 +484,8 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
       <button type="button" class="nav-item" id="nav-shop-static" onclick="openBusinessTab('botiga')">
         <span class="nav-icon">🏪</span><span class="nav-label">Botiga física</span>
       </button>
-      <button type="button" class="nav-item" id="nav-workshop-static" onclick="openBusinessTab('tallers')">
-        <span class="nav-icon">🎨</span><span class="nav-label">Tallers</span>
-      </button>
-      <button type="button" class="nav-item" id="nav-invoice-static" onclick="openBusinessTab('factures')">
-        <span class="nav-icon">🧾</span><span class="nav-label">Facturació</span>
+      <button type="button" class="nav-item" id="nav-files" onclick="openFilesSection()">
+        <span class="nav-icon">📁</span><span class="nav-label">Arxius generats</span><span class="nav-badge" id="nb-files">0</span>
       </button>
       <button type="button" class="nav-item" id="nav-config" onclick="goSection('config')">
         <span class="nav-icon">⚙</span><span class="nav-label">Configuració</span>
@@ -804,7 +808,23 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
   </div>
 </div>
 
-<!-- ═══════ GESTIÓ NEGOCI — CONTENIDOR ESTÀTIC V11.0 ═══════ -->
+<!-- ═══════ ARXIUS GENERATS — V11.3 ═══════ -->
+<div class="section" id="section-files">
+  <div class="section-header">
+    <div><div class="section-title">📁 Arxius generats</div><div class="section-subtitle">Documents creats localment per Todavía</div></div>
+    <button class="btn btn-ghost" onclick="refreshFilesSection()">↻ Actualitzar</button>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Documents disponibles</span><span class="small muted" id="files-count-label">0 arxius</span></div>
+    <div id="files-list" style="padding:8px 14px 14px;"><div class="empty-state"><div class="em">📁</div>Encara no hi ha arxius generats</div></div>
+  </div>
+  <div class="info-box" style="margin-top:10px;">
+    <div class="info-title">📱 Guardar a l'iPhone</div>
+    <div class="small muted">Prem «Desar a Fitxers» per obrir el menú natiu d'iOS i guardar el document a Fitxers, iCloud Drive o una altra ubicació.</div>
+  </div>
+</div>
+
+<!-- ═══════ GESTIÓ NEGOCI — CONTENIDOR ESTÀTIC V11.3 ═══════ -->
 <div class="section" id="section-business">
   <div class="section-header">
     <div><div class="section-title">🧰 Gestió del negoci</div><div class="section-subtitle">Mercats · botiga · tallers · factures · clients · despeses · caixa</div></div>
@@ -813,7 +833,7 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
   <div class="bm-tabs">
     <button data-bmtab="resum">📊 Resum</button><button data-bmtab="botiga">🏪 Botiga</button><button data-bmtab="tallers">🎨 Tallers</button><button data-bmtab="factures">🧾 Factures</button><button data-bmtab="clients">👥 Clients</button><button data-bmtab="despeses">💸 Despeses</button><button data-bmtab="compres">📥 Compres</button><button data-bmtab="caixa">💶 Caixa</button><button data-bmtab="fiscal">🧮 Fiscalitat</button><button data-bmtab="verifactu">🧾 VERI*FACTU</button><button data-bmtab="empresa">⚙ Empresa</button>
   </div>
-  <div id="bm-content"><div class="panel" id="bm-boot-panel"><div class="panel-header"><span class="panel-title">🧰 Gestió negoci</span><span class="small muted">V11.0</span></div><div style="padding:18px"><b>Preparant el mòdul…</b><p class="muted" style="margin-top:8px">Si aquesta pantalla no canvia, toca «Reintentar».</p><button class="btn btn-primary" style="margin-top:12px" onclick="openBusinessTab('resum')">↻ Reintentar</button></div></div></div>
+  <div id="bm-content"><div class="panel" id="bm-boot-panel"><div class="panel-header"><span class="panel-title">🧰 Gestió negoci</span><span class="small muted">V11.3</span></div><div style="padding:18px"><b>Gestió negoci preparada.</b><p class="muted" style="margin-top:8px">Si aquesta pantalla no canvia, toca «Reintentar».</p><button class="btn btn-primary" style="margin-top:12px" onclick="openBusinessTab('resum')">↻ Reintentar</button></div></div></div>
 </div>
 
 </div><!-- /wrapper -->
@@ -1120,6 +1140,7 @@ function goSection(name){
   if(name==='config')   populateCfgForm();
   if(name==='historial')renderHistorial();
   if(name==='bizum')    renderBizumSection();
+  if(name==='files')    refreshFilesSection();
 }
 function openBusinessTab(tab){
   try{
@@ -1128,7 +1149,7 @@ function openBusinessTab(tab){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
     sec.classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-    const navMap={resum:'nav-business-static',botiga:'nav-shop-static',tallers:'nav-workshop-static',factures:'nav-invoice-static'};
+    const navMap={resum:'nav-business-static',botiga:'nav-shop-static',tallers:'nav-business-static',factures:'nav-business-static'};
     const nav=document.getElementById(navMap[tab]||'nav-business-static');
     if(nav) nav.classList.add('active');
     currentSection='business';
@@ -2271,6 +2292,7 @@ function exportBackup(){
   a.href=URL.createObjectURL(blob);
   a.download=`market-backup-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
+  if(window.saveGeneratedFile) window.saveGeneratedFile(a.download,blob,{category:'Còpies de seguretat',sourceLabel:'Còpia de seguretat local'});
   showToast('✅ Còpia de seguretat exportada');
   addLog('info','Backup exportat.');
 }
@@ -2501,7 +2523,7 @@ if('serviceWorker' in navigator){
 
 
 <script>
-/* Todavía Business Manager V11.0 — embedded for reliable iPhone/PWA loading */
+/* Todavía Business Manager V11.3 — embedded for reliable iPhone/PWA loading */
 /* Todavía Business Manager v7 — mòdul de gestió de petit negoci
    Offline-first. Les dades d'aquest mòdul viuen al dispositiu i es poden sincronitzar a Google Sheets/Drive.
 */
@@ -2541,7 +2563,7 @@ function openBusinessTab(tab){
    document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
    sec.classList.add('active');
    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-   const ids={resum:'nav-business-static',botiga:'nav-shop-static',tallers:'nav-workshop-static',factures:'nav-invoice-static'};
+   const ids={resum:'nav-business-static',botiga:'nav-shop-static',tallers:'nav-business-static',factures:'nav-business-static'};
    const nav=document.getElementById(ids[bmTab]||'nav-business-static');
    if(nav) nav.classList.add('active');
    closeDrawerSafe();
@@ -2627,11 +2649,11 @@ function editInvoice(id){const i=bm.invoices.find(x=>x.id===id);closeModal();set
 function pdfBytes(invoice){const lines=[];const c=bm.company, cust=invoice.customer||{};lines.push(c.name,c.legalName,c.nif,c.address,`${c.postalCode} ${c.city}`,c.email,'');lines.push(`FACTURA ${invoice.number}`,`Fecha: ${fmtDate(invoice.date)}`,'');lines.push(`Cliente: ${invoice.customerName}`,cust.nif||'',cust.address||'',`${cust.postalCode||''} ${cust.city||''}`,'');lines.push('DESCRIPCION                    CANT.     PRECIO      IVA      IMPORTE');invoice.lines.forEach(l=>lines.push(`${l.description.slice(0,28).padEnd(30)} ${String(l.qty).padStart(5)} ${eur(l.price).padStart(12)} ${String(l.vat+'%').padStart(6)} ${eur(l.qty*l.price*(1+l.vat/100)).padStart(12)}`));lines.push('',`Base imponible: ${eur(invoice.subtotal)}`,`IVA: ${eur(invoice.tax)}`,`TOTAL: ${eur(invoice.total)}`,'',c.invoiceFooter||'');return makePDF(lines,`${invoice.number}.pdf`)}
 function makePDF(lines,name){const enc=new TextEncoder();const clean=s=>String(s||'').replace(/[^\x20-\x7EÀ-ÿ]/g,'?').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');let y=800,content='BT /F1 10 Tf 45 0 0 45 50 0 Tm\n';for(const line of lines){if(y<45){content+='ET';break}content+=`1 0 0 1 0 ${y-50} Tm (${clean(line)}) Tj\n`;y-=16}content+='ET';const objs=[];objs[1]='<< /Type /Catalog /Pages 2 0 R >>';objs[2]='<< /Type /Pages /Kids [3 0 R] /Count 1 >>';objs[3]='<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>';objs[4]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';objs[5]=`<< /Length ${enc.encode(content).length} >>\nstream\n${content}\nendstream`;let pdf='%PDF-1.4\n',offs=[0];for(let i=1;i<objs.length;i++){offs[i]=enc.encode(pdf).length;pdf+=`${i} 0 obj\n${objs[i]}\nendobj\n`}const xref=enc.encode(pdf).length;pdf+=`xref\n0 ${objs.length}\n0000000000 65535 f \n`;for(let i=1;i<objs.length;i++)pdf+=String(offs[i]).padStart(10,'0')+' 00000 n \n';pdf+=`trailer\n<< /Size ${objs.length} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;return new File([pdf],name,{type:'application/pdf'})}
 function fileToDataURL(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)})}
-async function ensureInvoicePDF(i){if(i.pdfData)return new File([Uint8Array.from(atob(i.pdfData.split(',')[1]),c=>c.charCodeAt(0))],i.number+'.pdf',{type:'application/pdf'});const f=pdfBytes(i);try{i.pdfData=await fileToDataURL(f);i.pdfGeneratedAt=new Date().toISOString();saveBM()}catch(e){}return f}
+async function ensureInvoicePDF(i){if(i.pdfData){const f0=new File([Uint8Array.from(atob(i.pdfData.split(',')[1]),c=>c.charCodeAt(0))],i.number+'.pdf',{type:'application/pdf'});try{if(window.saveGeneratedFile)await window.saveGeneratedFile(i.number+'.pdf',f0,{id:'invoice_'+i.id,category:'Factures',sourceId:i.id,sourceLabel:'Factura '+i.number,createdAt:i.pdfGeneratedAt||i.updatedAt||i.createdAt})}catch(e){}return f0;}const f=pdfBytes(i);try{i.pdfData=await fileToDataURL(f);i.pdfGeneratedAt=new Date().toISOString();saveBM();if(window.saveGeneratedFile)await window.saveGeneratedFile(f.name,f,{id:'invoice_'+i.id,category:'Factures',sourceId:i.id,sourceLabel:'Factura '+i.number,createdAt:i.pdfGeneratedAt})}catch(e){}return f}
 async function downloadInvoice(id){const i=bm.invoices.find(x=>x.id===id);if(!i)return;const f=await ensureInvoicePDF(i);const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('PDF generat')}
 async function shareInvoice(id){const i=bm.invoices.find(x=>x.id===id);if(!i)return;const f=await ensureInvoicePDF(i);try{if(navigator.share&&navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({title:`Factura ${i.number}`,text:`Factura ${i.number} de ${bm.company.name}`,files:[f]});return}}catch(e){}downloadInvoice(id);const email=i.customer?.email||'';if(email)location.href=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Factura '+i.number)}&body=${encodeURIComponent('Adjunto trobaràs la factura '+i.number+'.')}`}
 function newInvoiceForCustomer(c){newInvoice({customerId:c.id,customerName:c.name,customer:c})}
-function exportInvoicesCSV(){const rows=[['Número','Data','Client','Base','IVA','Total','Estat'],...bm.invoices.map(i=>[i.number,i.date,i.customerName,i.subtotal,i.tax,i.total,i.status])];const csv=rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='factures.csv';a.click()}
+function exportInvoicesCSV(){const rows=[['Número','Data','Client','Base','IVA','Total','Estat'],...bm.invoices.map(i=>[i.number,i.date,i.customerName,i.subtotal,i.tax,i.total,i.status])];const csv=rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});if(window.saveGeneratedFile)window.saveGeneratedFile('factures.csv',blob,{category:'Factures',sourceLabel:'Exportació de factures'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='factures.csv';a.click();}
 function toggleSifFields(){const v=document.getElementById('fSif')?.value==='true';const b=document.getElementById('sifReasonBox');if(b)b.style.display=v?'none':'block'}
 async function sha256Hex(text){if(window.crypto?.subtle){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));return [...new Uint8Array(buf)].map(x=>x.toString(16).padStart(2,'0')).join('')}return btoa(unescape(encodeURIComponent(text))).slice(0,64)}
 async function createVerifactuRecord(invoice){
@@ -2676,11 +2698,134 @@ function exportData(){const blob=new Blob([JSON.stringify(bm,null,2)],{type:'app
 function importData(ev){const f=ev.target.files&&ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.company||!x.invoices)throw Error('Fitxer no compatible');bm=Object.assign(def(),x);saveBM();renderBM();toast('Gestió restaurada')}catch(e){toast('Fitxer no vàlid: '+e.message)}};r.readAsText(f);ev.target.value=''}
 function quickSave(){saveBM();toast('Gestió guardada al dispositiu')}
 async function syncAll(){if(!window.settings?.scriptUrl && typeof settings==='undefined'){toast('Configura primer Google Sheets');return}const url=(typeof settings!=='undefined'&&settings.scriptUrl)||'';if(!url){toast('Configura primer Google Sheets');return}const payload={action:'syncBusiness',eventId:uid('bm'),timestamp:new Date().toISOString(),deviceId:window.deviceId||'',deviceName:window.deviceName||'',business:bm};try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});const j=await r.json();if(j.status==='ok'){bm.pending=[];saveBM();toast('✓ Gestió sincronitzada a Sheets/Drive')}else throw Error(j.message||'Error')}catch(e){bm.pending.push({payload,error:e.message,ts:new Date().toISOString()});saveBM();toast('📴 Guardat al mòbil; sync pendent')}}
-window.BM={openBusiness,openBusinessTab,renderBM,newClient,editClient,newInvoice,editInvoice,newExpense,newPurchase,newCash,newWorkshop,editWorkshop,addWorkshopSession,saveCompany,openShop,closeShop,invoiceActions,downloadInvoice,shareInvoice,exportInvoicesCSV,quickSave,exportData,importData,syncAll,shopSale,shopCost,shopCalcAdd,shopCalcRender,shopCalcClear,shopCalcCheckout,shopCalcCustom,saveTaxProfile,saveSifMode,saveSifDefault,toggleSifFields,exportVerifactuCSV,markPendingForReview,exportFiscalCSV,closeModal:()=>document.getElementById('bmModal')?.remove(),renderInvoiceRows};
-window.addEventListener('load',()=>{try{const v=document.getElementById('appVersionSelect');if(v)v.value='V11.0';}catch(e){}});
+window.BM={openBusiness,openBusinessTab,renderBM,newClient,editClient,newInvoice,editInvoice,newExpense,newPurchase,newCash,newWorkshop,editWorkshop,addWorkshopSession,saveCompany,openShop,closeShop,invoiceActions,downloadInvoice,shareInvoice,exportInvoicesCSV,quickSave,exportData,importData,syncAll,shopSale,shopCost,shopCalcAdd,shopCalcRender,shopCalcClear,shopCalcCheckout,shopCalcCustom,saveTaxProfile,saveSifMode,saveSifDefault,toggleSifFields,exportVerifactuCSV,markPendingForReview,exportFiscalCSV,closeModal:()=>document.getElementById('bmModal')?.remove(),renderInvoiceRows,getInvoices:()=>bm.invoices};
+window.addEventListener('load',()=>{try{const v=document.getElementById('appVersionSelect');if(v)v.value='V11.3';}catch(e){}});
 window.addEventListener('load',ensureUI);document.addEventListener('DOMContentLoaded',ensureUI);
 })();
 
+</script>
+
+<script>
+/* V11.3 SAFE BUSINESS NAVIGATION
+   This layer is intentionally independent from the Business Manager renderer.
+   It guarantees visible feedback even if a renderer throws. */
+(function(){
+  const labels={
+    resum:'📊 Resum',botiga:'🏪 Botiga física',tallers:'🎨 Tallers',factures:'🧾 Facturació',
+    clients:'👥 Clients',despeses:'💸 Despeses',compres:'📥 Compres',caixa:'💶 Caixa',fiscal:'🧮 Fiscalitat',verifactu:'🧾 VERI*FACTU',empresa:'⚙ Empresa'
+  };
+  function safeShell(tab){
+    const c=document.getElementById('bm-content');
+    if(!c)return;
+    const label=labels[tab]||labels.resum;
+    c.innerHTML='<div class="bm-safe-shell"><div class="panel"><div class="panel-header"><span class="panel-title">'+label+'</span><span class="small muted">V11.3</span></div><div style="padding:18px"><b>Carregant...</b><p class="muted" style="margin-top:8px">Preparant el mòdul. Si hi ha un error, es mostrarà aquí.</p></div></div></div>';
+  }
+  function safeOpen(tab){
+    tab=tab||'resum';
+    try{
+      const sec=document.getElementById('section-business');
+      if(!sec) throw new Error('No s’ha trobat section-business');
+      document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+      sec.classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+      const ids={resum:'nav-business-static',botiga:'nav-shop-static',tallers:'nav-business-static',factures:'nav-business-static'};
+      const nav=document.getElementById(ids[tab]||'nav-business-static');
+      if(nav)nav.classList.add('active');
+      currentSection='business';
+      if(typeof closeDrawer==='function')closeDrawer();
+      safeShell(tab);
+      window.scrollTo(0,0);
+      setTimeout(function(){
+        try{
+          if(!window.BM || typeof window.BM.openBusinessTab!=='function') throw new Error('El Business Manager no s’ha inicialitzat.');
+          window.BM.openBusinessTab(tab);
+        }catch(e){
+          const c=document.getElementById('bm-content');
+          if(c)c.innerHTML='<div class="bm-safe-shell"><div class="panel bm-runtime-error"><div class="panel-header"><span class="panel-title">⚠️ Error del mòdul</span><span class="small muted">V11.3</span></div><div style="padding:18px"><b>No s’ha pogut carregar '+(labels[tab]||'aquesta secció')+'.</b><p class="muted" style="margin-top:10px;white-space:pre-wrap">'+String(e&&e.message||e)+'</p><div class="actions" style="margin-top:14px"><button class="btn btn-primary" onclick="openBusinessTab(\''+tab+'\')">↻ Reintentar</button><button class="btn btn-ghost" onclick="location.reload()">Recarregar aplicació</button></div></div></div></div>';
+          console.error('V11.3 business renderer',e);
+        }
+      },0);
+    }catch(e){
+      console.error('V11.3 business navigation',e);
+      const sec=document.getElementById('section-business');
+      if(sec){sec.classList.add('active');}
+      const c=document.getElementById('bm-content');
+      if(c)c.innerHTML='<div class="panel bm-runtime-error"><div class="panel-header"><span class="panel-title">⚠️ Error de navegació</span></div><div style="padding:18px">'+String(e&&e.message||e)+'</div></div>';
+    }
+  }
+  window.openBusinessTab=safeOpen;
+  window.addEventListener('error',function(ev){
+    const sec=document.getElementById('section-business');
+    if(!sec||!sec.classList.contains('active'))return;
+    const c=document.getElementById('bm-content');
+    if(c && (!c.innerText.trim() || c.innerText.trim()==='Carregant...')){
+      c.innerHTML='<div class="panel bm-runtime-error"><div class="panel-header"><span class="panel-title">⚠️ Error JavaScript</span></div><div style="padding:18px"><p>'+String(ev.message||'Error desconegut')+'</p><button class="btn btn-primary" style="margin-top:12px" onclick="location.reload()">↻ Recarregar</button></div></div>';
+    }
+  });
+})();
+</script>
+<script>
+/* V11.3 LOCAL FILE CENTER
+   Keeps generated documents locally in IndexedDB and exposes an iPhone-friendly
+   "Desar a Fitxers" action through the native Web Share sheet. */
+(function(){
+  const DB_NAME='todavia_local_files_v1', STORE='files';
+  let dbPromise=null;
+  function openDB(){
+    if(dbPromise)return dbPromise;
+    dbPromise=new Promise((resolve,reject)=>{
+      if(!('indexedDB' in window)){reject(new Error('IndexedDB no disponible'));return;}
+      const req=indexedDB.open(DB_NAME,1);
+      req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE)){const st=db.createObjectStore(STORE,{keyPath:'id'});st.createIndex('createdAt','createdAt');}};
+      req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error('No s’ha pogut obrir l’arxiu local'));
+    });
+    return dbPromise;
+  }
+  async function putFile(name,type,blob,meta={}){
+    const db=await openDB();
+    const rec={id:meta.id||('file_'+Date.now()+'_'+Math.random().toString(36).slice(2,8)),name,type:type||blob.type||'application/octet-stream',size:blob.size,blob,createdAt:meta.createdAt||new Date().toISOString(),category:meta.category||'Altres',sourceId:meta.sourceId||'',sourceLabel:meta.sourceLabel||''};
+    await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(rec);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('No s’ha pogut guardar l’arxiu'));});
+    return rec;
+  }
+  async function allFiles(){
+    try{const db=await openDB();return await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readonly');const req=tx.objectStore(STORE).getAll();req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error);});}catch(e){return []}
+  }
+  async function deleteFile(id){const db=await openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});refreshFilesSection();}
+  function fmtSize(n){n=Number(n)||0;if(n<1024)return n+' B';if(n<1024*1024)return (n/1024).toFixed(1)+' KB';return (n/1024/1024).toFixed(1)+' MB'}
+  function fmtDate(s){try{return new Date(s).toLocaleString('ca-ES',{dateStyle:'short',timeStyle:'short'})}catch(e){return s}}
+  function escF(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  async function getStored(id){const db=await openDB();return await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readonly');const req=tx.objectStore(STORE).get(id);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
+  async function shareBlob(blob,name,title){
+    const file=new File([blob],name,{type:blob.type||'application/octet-stream'});
+    try{if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){await navigator.share({title:title||name,files:[file]});return true;}}catch(e){if(e&&e.name==='AbortError')return true;}
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);return false;
+  }
+  async function saveExistingInvoiceFiles(){
+    try{
+      if(!window.BM||!BM.getInvoices)return;
+      const invs=BM.getInvoices();
+      for(const i of invs){if(i.pdfData){const b64=i.pdfData.split(',')[1];const blob=new Blob([Uint8Array.from(atob(b64),c=>c.charCodeAt(0))],{type:'application/pdf'});await putFile(i.number+'.pdf','application/pdf',blob,{id:'invoice_'+i.id,category:'Factures',sourceId:i.id,sourceLabel:'Factura '+i.number,createdAt:i.pdfGeneratedAt||i.updatedAt||i.createdAt});}}
+    }catch(e){console.warn('V11.3 invoice indexing',e)}
+  }
+  async function render(){
+    const list=document.getElementById('files-list');if(!list)return;
+    await saveExistingInvoiceFiles();
+    const files=await allFiles();
+    const label=document.getElementById('files-count-label');if(label)label.textContent=`${files.length} arxiu${files.length===1?'':'s'}`;
+    const badge=document.getElementById('nb-files');if(badge)badge.textContent=String(files.length);
+    if(!files.length){list.innerHTML='<div class="empty-state"><div class="em">📁</div>Encara no hi ha arxius generats</div>';return;}
+    files.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+    list.innerHTML=files.map(f=>`<div class="between" style="padding:10px 0;border-bottom:1px solid var(--border);gap:10px;align-items:center"><div style="min-width:0"><div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escF(f.name)}</div><div class="small muted">${escF(f.category)} · ${fmtSize(f.size)} · ${fmtDate(f.createdAt)}</div></div><div class="actions" style="flex-shrink:0"><button class="btn btn-primary" style="font-size:.7rem" onclick="viewLocalFile('${f.id}')">👁 Veure</button><button class="btn btn-ghost" style="font-size:.7rem" onclick="shareLocalFile('${f.id}')">↗ Desar a Fitxers</button><button class="btn btn-ghost" style="font-size:.7rem" onclick="deleteLocalFile('${f.id}')">🗑</button></div></div>`).join('');
+  }
+  window.saveGeneratedFile=async function(name,blob,meta={}){const rec=await putFile(name,blob.type||'application/octet-stream',blob,meta);if(document.getElementById('section-files')?.classList.contains('active'))render();const badge=document.getElementById('nb-files');if(badge){const files=await allFiles();badge.textContent=String(files.length)}return rec;};
+  window.openFilesSection=function(){closeDrawer();document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('section-files').classList.add('active');document.getElementById('nav-files').classList.add('active');currentSection='files';render();window.scrollTo(0,0)};
+  window.refreshFilesSection=render;
+  window.viewLocalFile=async function(id){try{const f=await getStored(id);if(!f)return;const url=URL.createObjectURL(f.blob);const w=window.open(url,'_blank');if(!w){location.href=url}else setTimeout(()=>URL.revokeObjectURL(url),60000)}catch(e){showToast&&showToast('❌ No s’ha pogut obrir l’arxiu')}};
+  window.shareLocalFile=async function(id){try{const f=await getStored(id);if(!f)return;await shareBlob(f.blob,f.name,f.sourceLabel||f.name)}catch(e){showToast&&showToast('❌ No s’ha pogut compartir l’arxiu')}};
+  window.deleteLocalFile=async function(id){if(!confirm('Eliminar aquest arxiu de la biblioteca local?'))return;try{await deleteFile(id);showToast&&showToast('Arxiu eliminat')}catch(e){showToast&&showToast('❌ No s’ha pogut eliminar l’arxiu')}};
+  window.__todaviaSaveLocalFile=putFile;
+  window.addEventListener('load',()=>{setTimeout(render,300)});
+})();
 </script>
 </body>
 </html>
