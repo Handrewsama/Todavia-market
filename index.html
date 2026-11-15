@@ -428,9 +428,9 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
         <div class="drawer-market" id="drawerMarketName">Mercat</div>
       </div>
       <label style="display:flex;align-items:center;gap:5px;flex-shrink:0;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);" title="Versió de l'aplicació">
-        <span>Versió</span>
-        <select id="appVersionSelect" aria-label="Versió de l'aplicació" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:5px 6px;font-family:'DM Mono',monospace;font-size:.62rem;max-width:76px;">
-          <option value="V10" selected>V10</option>
+        <span style="opacity:.75">Versió</span>
+        <select id="appVersionSelect" aria-label="Versió de l'aplicació" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:5px 6px;font-family:'DM Mono',monospace;font-size:.62rem;max-width:92px;font-weight:800;cursor:pointer;">
+          <option value="V10.3" selected>V10.3</option>
         </select>
       </label>
     </div>
@@ -2420,7 +2420,20 @@ setInterval(updateBackupPill, 60*1000);
 // Refrescar el panell de backups cada minut si l'usuari és a Config
 setInterval(()=>{ if(currentSection==='config') renderBackupList(); }, 60*1000);
 requestWakeLock();
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
+if('serviceWorker' in navigator){
+  window.addEventListener('load', async ()=>{
+    try{
+      // Clean old service workers/caches left by previous Todavía versions.
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for(const reg of regs){ await reg.unregister(); }
+      if(window.caches){
+        const keys = await caches.keys();
+        await Promise.all(keys.filter(k=>/^todavia-market-/i.test(k)).map(k=>caches.delete(k)));
+      }
+      await navigator.serviceWorker.register('./sw.js?v=10.3');
+    }catch(e){ console.warn('SW update:',e); }
+  });
+}
 </script>
 <script src="business-manager.js"></script>
 </body>

@@ -52,3 +52,7 @@ El mòdul genera localment un registre de facturació amb hash SHA-256 i encaden
 - Indicador de versió visible al capdamunt del menú desplegable "Espai de treball / Mercat".
 - Selector mostra explícitament la versió carregada: V10.2.
 - Service Worker amb nova clau de caché per evitar que Safari/PWA mantingui una versió anterior.
+
+
+### V10.3 — Cache
+Aquesta versió incorpora neteja automàtica de Service Workers i caches antigues per evitar que iOS/Safari mantingui una versió anterior de la PWA.
