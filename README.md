@@ -1,1 +1,1 @@
-Todavía Market Manager V10.7 — navegació robusta de Gestió negoci, Botiga, Tallers i Facturació; versió visible V10.7 i actualització de Service Worker.
+Todavía Market Manager V10.8 — navegació robusta de Gestió negoci, Botiga, Tallers i Facturació; versió visible V10.8 i actualització de Service Worker.

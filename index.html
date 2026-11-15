@@ -440,7 +440,7 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
       <label style="display:flex;align-items:center;gap:5px;flex-shrink:0;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);" title="Versió de l'aplicació">
         <span style="opacity:.75">Versió</span>
         <select id="appVersionSelect" aria-label="Versió de l'aplicació" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:5px 6px;font-family:'DM Mono',monospace;font-size:.62rem;max-width:92px;font-weight:800;cursor:pointer;">
-          <option value="V10.7" selected>V10.7</option>
+          <option value="V10.8" selected>V10.8</option>
         </select>
       </label>
     </div>
@@ -802,6 +802,18 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
       <button class="btn btn-danger" onclick="confirmResetBizum()">📱 Reset Bizum any</button>
     </div>
   </div>
+</div>
+
+<!-- ═══════ GESTIÓ NEGOCI — CONTENIDOR ESTÀTIC V10.8 ═══════ -->
+<div class="section" id="section-business">
+  <div class="section-header">
+    <div><div class="section-title">🧰 Gestió del negoci</div><div class="section-subtitle">Mercats · botiga · tallers · factures · clients · despeses · caixa</div></div>
+    <button class="btn btn-primary" onclick="BM.quickSave()">💾 Guardar</button>
+  </div>
+  <div class="bm-tabs">
+    <button data-bmtab="resum">📊 Resum</button><button data-bmtab="botiga">🏪 Botiga</button><button data-bmtab="tallers">🎨 Tallers</button><button data-bmtab="factures">🧾 Factures</button><button data-bmtab="clients">👥 Clients</button><button data-bmtab="despeses">💸 Despeses</button><button data-bmtab="compres">📥 Compres</button><button data-bmtab="caixa">💶 Caixa</button><button data-bmtab="fiscal">🧮 Fiscalitat</button><button data-bmtab="verifactu">🧾 VERI*FACTU</button><button data-bmtab="empresa">⚙ Empresa</button>
+  </div>
+  <div id="bm-content"><div class="panel"><div style="padding:18px">Carregant Gestió negoci…</div></div></div>
 </div>
 
 </div><!-- /wrapper -->
@@ -2479,18 +2491,11 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function today(){return new Date().toISOString().slice(0,10)}
 function fmtDate(d){if(!d)return '—';return new Date(d+'T12:00:00').toLocaleDateString('ca-ES')}
 function toast(t){if(window.showToast)showToast(t);else alert(t)}
+let bmBound=false;
 function ensureUI(){
- const wrap=document.querySelector('.wrapper');
- if(!wrap) return false;
- let sec=document.getElementById('section-business');
- if(!sec){
-   sec=document.createElement('div');
-   sec.className='section';
-   sec.id='section-business';
-   sec.innerHTML=html();
-   wrap.appendChild(sec);
-   bind();
- }
+ const sec=document.getElementById('section-business');
+ if(!sec) return false;
+ if(!bmBound){ bind(); bmBound=true; }
  return true;
 }
 function html(){return `
@@ -2528,7 +2533,7 @@ function showBMError(e){
  }
 }
 function closeDrawerSafe(){if(window.closeDrawer)window.closeDrawer()}
-function bind(){document.querySelectorAll('[data-bmtab]').forEach(b=>b.onclick=()=>{bmTab=b.dataset.bmtab;renderBM()})}
+function bind(){const sec=document.getElementById('section-business');if(!sec)return;sec.querySelectorAll('[data-bmtab]').forEach(b=>b.onclick=()=>{bmTab=b.dataset.bmtab;renderBM()})}
 function renderBM(){
  try{
    if(!ensureUI()) throw new Error('No s\'ha trobat el contenidor principal.');
@@ -2643,7 +2648,7 @@ function importData(ev){const f=ev.target.files&&ev.target.files[0];if(!f)return
 function quickSave(){saveBM();toast('Gestió guardada al dispositiu')}
 async function syncAll(){if(!window.settings?.scriptUrl && typeof settings==='undefined'){toast('Configura primer Google Sheets');return}const url=(typeof settings!=='undefined'&&settings.scriptUrl)||'';if(!url){toast('Configura primer Google Sheets');return}const payload={action:'syncBusiness',eventId:uid('bm'),timestamp:new Date().toISOString(),deviceId:window.deviceId||'',deviceName:window.deviceName||'',business:bm};try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});const j=await r.json();if(j.status==='ok'){bm.pending=[];saveBM();toast('✓ Gestió sincronitzada a Sheets/Drive')}else throw Error(j.message||'Error')}catch(e){bm.pending.push({payload,error:e.message,ts:new Date().toISOString()});saveBM();toast('📴 Guardat al mòbil; sync pendent')}}
 window.BM={openBusiness,openBusinessTab,renderBM,newClient,editClient,newInvoice,editInvoice,newExpense,newPurchase,newCash,newWorkshop,editWorkshop,addWorkshopSession,saveCompany,openShop,closeShop,invoiceActions,downloadInvoice,shareInvoice,exportInvoicesCSV,quickSave,exportData,importData,syncAll,shopSale,shopCost,shopCalcAdd,shopCalcRender,shopCalcClear,shopCalcCheckout,shopCalcCustom,saveTaxProfile,saveSifMode,saveSifDefault,toggleSifFields,exportVerifactuCSV,markPendingForReview,exportFiscalCSV,closeModal:()=>document.getElementById('bmModal')?.remove(),renderInvoiceRows};
-window.addEventListener('load',()=>{try{const v=document.getElementById('appVersionSelect');if(v)v.value='V10.7';}catch(e){}});
+window.addEventListener('load',()=>{try{const v=document.getElementById('appVersionSelect');if(v)v.value='V10.8';}catch(e){}});
 window.addEventListener('load',ensureUI);document.addEventListener('DOMContentLoaded',ensureUI);
 })();
 

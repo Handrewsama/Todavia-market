@@ -1,4 +1,4 @@
-/* Todavía Business Manager v7 — mòdul de gestió de petit negoci
+/* Todavía Business Manager v10.8 — mòdul de gestió de petit negoci
    Offline-first. Les dades d'aquest mòdul viuen al dispositiu i es poden sincronitzar a Google Sheets/Drive.
 */
 (function(){

@@ -1,6 +1,6 @@
-const CACHE='todavia-market-v10-7';
-const OLD_CACHES=['todavia-market-v8','todavia-market-v9','todavia-market-v10','todavia-market-v10-1','todavia-market-v10-2','todavia-market-v10-3','todavia-market-v10-4','todavia-market-v10-5'];
-const ASSETS=['./','./index.html','./manifest.json','./icon.svg','./business-manager.js','./google-apps-script.js'];
+const CACHE='todavia-market-v10-8';
+const OLD_CACHES=['todavia-market-v8','todavia-market-v9','todavia-market-v10','todavia-market-v10-1','todavia-market-v10-2','todavia-market-v10-3','todavia-market-v10-4','todavia-market-v10-5','todavia-market-v10-6','todavia-market-v10-7'];
+const ASSETS=['./','./index.html','./manifest.json','./icon.svg','./business-manager.js','./google-apps-script.js','./sw.js'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
