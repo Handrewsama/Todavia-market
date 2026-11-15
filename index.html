@@ -440,7 +440,7 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
       <label style="display:flex;align-items:center;gap:5px;flex-shrink:0;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);" title="Versió de l'aplicació">
         <span style="opacity:.75">Versió</span>
         <select id="appVersionSelect" aria-label="Versió de l'aplicació" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:5px 6px;font-family:'DM Mono',monospace;font-size:.62rem;max-width:92px;font-weight:800;cursor:pointer;">
-          <option value="V10.4" selected>V10.4</option>
+          <option value="V10.7" selected>V10.7</option>
         </select>
       </label>
     </div>
@@ -471,14 +471,17 @@ button#marketNameDisplay:hover{border-bottom:1px dashed var(--accent);}
         <span class="nav-icon">📦</span><span class="nav-label">Catàleg</span>
         <span class="nav-badge" id="nb-cataleg">0</span>
       </button>
-      <button type="button" class="nav-item" id="nav-business-static" onclick="if(window.BM){BM.openBusiness();}else{alert('El mòdul de gestió encara no s'ha carregat.');}">
+      <button type="button" class="nav-item" id="nav-business-static" onclick="BM.openBusinessTab('resum')">
         <span class="nav-icon">🧰</span><span class="nav-label">Gestió negoci</span>
       </button>
-      <button type="button" class="nav-item" id="nav-shop-static" onclick="if(window.BM){BM.openBusiness();window.setTimeout(()=>{window.BM.renderBM();},30);} ">
+      <button type="button" class="nav-item" id="nav-shop-static" onclick="BM.openBusinessTab('botiga')">
         <span class="nav-icon">🏪</span><span class="nav-label">Botiga física</span>
       </button>
-      <button type="button" class="nav-item" id="nav-workshop-static" onclick="if(window.BM){BM.openBusiness();window.setTimeout(()=>{document.querySelector('[data-bmtab=\"tallers\"]')?.click();},30);} ">
+      <button type="button" class="nav-item" id="nav-workshop-static" onclick="BM.openBusinessTab('tallers')">
         <span class="nav-icon">🎨</span><span class="nav-label">Tallers</span>
+      </button>
+      <button type="button" class="nav-item" id="nav-invoice-static" onclick="BM.openBusinessTab('factures')">
+        <span class="nav-icon">🧾</span><span class="nav-label">Facturació</span>
       </button>
       <button type="button" class="nav-item" id="nav-config" onclick="goSection('config')">
         <span class="nav-icon">⚙</span><span class="nav-label">Configuració</span>
@@ -2449,7 +2452,7 @@ if('serviceWorker' in navigator){
         const keys = await caches.keys();
         await Promise.all(keys.filter(k=>/^todavia-market-/i.test(k)).map(k=>caches.delete(k)));
       }
-      await navigator.serviceWorker.register('./sw.js?v=10.6');
+      await navigator.serviceWorker.register('./sw.js?v=10.7');
     }catch(e){ console.warn('SW update:',e); }
   });
 }
@@ -2477,27 +2480,73 @@ function today(){return new Date().toISOString().slice(0,10)}
 function fmtDate(d){if(!d)return '—';return new Date(d+'T12:00:00').toLocaleDateString('ca-ES')}
 function toast(t){if(window.showToast)showToast(t);else alert(t)}
 function ensureUI(){
- const drawer=document.getElementById('drawer'); if(!drawer)return;
- if(!document.getElementById('nav-business')){
-  const b=document.createElement('button');b.type='button';b.className='nav-item';b.id='nav-business';b.innerHTML='<span>🧰 Gestió negoci</span><span class="nav-badge" id="nb-business">—</span>';b.onclick=()=>openBusiness();
-  const shop=document.createElement('button');shop.type='button';shop.className='nav-item';shop.id='nav-shop-direct';shop.innerHTML='<span>🏪 Botiga física</span>';shop.onclick=()=>{openBusiness();bmTab='botiga';renderBM()};
-  const work=document.createElement('button');work.type='button';work.className='nav-item';work.id='nav-workshop-direct';work.innerHTML='<span>🎨 Tallers</span>';work.onclick=()=>{openBusiness();bmTab='tallers';renderBM()};
-  const cfg=document.getElementById('nav-config'); if(cfg){drawer.insertBefore(b,cfg);drawer.insertBefore(shop,cfg);drawer.insertBefore(work,cfg);} else {drawer.appendChild(b);drawer.appendChild(shop);drawer.appendChild(work);}
- }
- if(document.getElementById('section-business'))return;
  const wrap=document.querySelector('.wrapper');
- const sec=document.createElement('div');sec.className='section';sec.id='section-business';sec.innerHTML=html();wrap.appendChild(sec);
- bind();renderBM();
+ if(!wrap) return false;
+ let sec=document.getElementById('section-business');
+ if(!sec){
+   sec=document.createElement('div');
+   sec.className='section';
+   sec.id='section-business';
+   sec.innerHTML=html();
+   wrap.appendChild(sec);
+   bind();
+ }
+ return true;
 }
 function html(){return `
 <div class="section-header"><div><div class="section-title">🧰 Gestió del negoci</div><div class="section-subtitle">Mercats · botiga · tallers · factures · clients · despeses · caixa</div></div><button class="btn btn-primary" onclick="BM.quickSave()">💾 Guardar</button></div>
 <div class="bm-tabs">${[['resum','📊 Resum'],['botiga','🏪 Botiga'],['tallers','🎨 Tallers'],['factures','🧾 Factures'],['clients','👥 Clients'],['despeses','💸 Despeses'],['compres','📥 Compres'],['caixa','💶 Caixa'],['fiscal','🧮 Fiscalitat'],['verifactu','🧾 VERI*FACTU'],['empresa','⚙ Empresa']].map(x=>`<button data-bmtab="${x[0]}">${x[1]}</button>`).join('')}</div>
 <div id="bm-content"></div>`}
-function openBusiness(){ensureUI();document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById('section-business').classList.add('active');document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('nav-business').classList.add('active');closeDrawerSafe();renderBM()}
+function openBusiness(){openBusinessTab('resum')}
+function openBusinessTab(tab){
+ try{
+   if(!ensureUI()) throw new Error('No s\'ha trobat el contenidor principal de l\'aplicació.');
+   bmTab=tab||'resum';
+   const sec=document.getElementById('section-business');
+   if(!sec) throw new Error('No s\'ha pogut crear la secció Gestió negoci.');
+   document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+   sec.classList.add('active');
+   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+   const ids={resum:'nav-business-static',botiga:'nav-shop-static',tallers:'nav-workshop-static',factures:'nav-invoice-static'};
+   const nav=document.getElementById(ids[bmTab]||'nav-business-static');
+   if(nav) nav.classList.add('active');
+   closeDrawerSafe();
+   renderBM();
+   window.scrollTo({top:0,behavior:'smooth'});
+ }catch(e){
+   console.error('Todavía BM navigation error',e);
+   showBMError(e);
+ }
+}
+function showBMError(e){
+ const sec=document.getElementById('section-business');
+ if(sec){
+   document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+   sec.classList.add('active');
+   const c=sec.querySelector('#bm-content');
+   if(c)c.innerHTML=`<div class="panel" style="border-color:var(--danger)"><div class="panel-header"><span class="panel-title">⚠️ Error carregant Gestió negoci</span></div><div style="padding:14px"><p>No s'ha pogut pintar aquesta pantalla.</p><p class="muted" style="margin-top:8px">${esc(e?.message||e||'Error desconegut')}</p><button class="btn btn-primary" style="margin-top:12px" onclick="location.reload()">↻ Recarregar aplicació</button></div></div>`;
+ }
+}
 function closeDrawerSafe(){if(window.closeDrawer)window.closeDrawer()}
 function bind(){document.querySelectorAll('[data-bmtab]').forEach(b=>b.onclick=()=>{bmTab=b.dataset.bmtab;renderBM()})}
-function renderBM(){ensureUI();const c=document.getElementById('bm-content');if(!c)return;document.querySelectorAll('[data-bmtab]').forEach(b=>b.classList.toggle('active',b.dataset.bmtab===bmTab));c.innerHTML=({resum:resum,botiga:botiga,tallers:tallers,factures:factures,clients:clients,despeses:despeses,compres:compres,caixa:caixa,fiscal:fiscal,verifactu:verifactu,empresa:empresa}[bmTab]||resum)();
- if(bmTab==='fiscal')renderFiscal(); if(bmTab==='factures')renderInvoiceRows(); if(bmTab==='clients')renderClientRows(); if(bmTab==='tallers')renderWorkshopRows(); if(bmTab==='despeses')renderExpenseRows(); if(bmTab==='compres')renderPurchaseRows(); if(bmTab==='caixa')renderCashRows();
+function renderBM(){
+ try{
+   if(!ensureUI()) throw new Error('No s\'ha trobat el contenidor principal.');
+   const c=document.getElementById('bm-content');
+   if(!c) throw new Error('No s\'ha trobat el contenidor de Gestió negoci.');
+   document.querySelectorAll('[data-bmtab]').forEach(b=>b.classList.toggle('active',b.dataset.bmtab===bmTab));
+   const renderer={resum,botiga,tallers,factures,clients,despeses,compres,caixa,fiscal,verifactu,empresa}[bmTab]||resum;
+   c.innerHTML=renderer();
+   if(bmTab==='factures')renderInvoiceRows();
+   if(bmTab==='clients')renderClientRows();
+   if(bmTab==='tallers')renderWorkshopRows();
+   if(bmTab==='despeses')renderExpenseRows();
+   if(bmTab==='compres')renderPurchaseRows();
+   if(bmTab==='caixa')renderCashRows();
+ }catch(e){
+   console.error('Todavía BM render error',e);
+   showBMError(e);
+ }
 }
 function card(t,b){return `<div class="panel"><div class="panel-header"><span class="panel-title">${t}</span></div><div style="padding:14px">${b}</div></div>`}
 function resum(){const rev=bm.invoices.filter(i=>i.status!=='cancel·lada').reduce((s,i)=>s+i.total,0);const exp=bm.expenses.reduce((s,x)=>s+x.amount,0);const shop=bm.shopDays.filter(x=>x.closed).reduce((s,x)=>s+x.sales,0);const workshops=bm.workshops.reduce((s,w)=>s+(w.sessions||[]).reduce((a,x)=>a+x.net,0),0);const pending=bm.pending.length;return `<div class="fin-grid2"><div class="fin-big"><div class="fin-big-label">Factures emeses</div><div class="fin-big-val accent">${bm.invoices.length}</div></div><div class="fin-big"><div class="fin-big-label">Facturació factures</div><div class="fin-big-val green">${eur(rev)}</div></div><div class="fin-big"><div class="fin-big-label">Botiga acumulada</div><div class="fin-big-val blue">${eur(shop)}</div></div><div class="fin-big"><div class="fin-big-label">Benefici tallers</div><div class="fin-big-val purple">${eur(workshops)}</div></div></div>${card('Activitat',`<div class="bm-kpis"><div><b>${bm.shopDays.length}</b><span>dies de botiga</span></div><div><b>${bm.workshops.length}</b><span>tallers</span></div><div><b>${bm.customers.length}</b><span>clients</span></div><div><b>${eur(exp)}</b><span>despeses</span></div></div>`)}${card('Sincronització',`<div class="between"><span>${pending?`⚠️ ${pending} elements pendents`:'✓ Tot guardat localment'}</span><button class="btn btn-primary" onclick="BM.syncAll()">↑ Sincronitzar negoci</button></div>`)}${card('Accions ràpides',`<div class="actions"><button class="btn btn-primary" onclick="BM.newInvoice()">+ Factura</button><button class="btn btn-ghost" onclick="BM.openShop()">🏪 Obrir botiga avui</button><button class="btn btn-ghost" onclick="BM.newWorkshop()">+ Taller</button><button class="btn btn-ghost" onclick="BM.newExpense()">+ Despesa</button></div>`)}`}
@@ -2522,7 +2571,7 @@ function renderClientRows(){const el=document.getElementById('bm-clients');if(!e
 function renderWorkshopRows(){const el=document.getElementById('bm-workshops');if(!el)return;el.innerHTML=bm.workshops.map(w=>{const net=(w.sessions||[]).reduce((s,x)=>s+x.net,0);return `<div class="item-card"><div class="between"><div><b>${esc(w.name)}</b><div class="muted">${w.paxMin||0}–${w.paxMax||0} pax · ${eur(w.pricePerPax||0)}/pax</div></div><b class="positive">${eur(net)}</b></div><div class="actions" style="margin-top:8px"><button class="btn btn-ghost" onclick="BM.addWorkshopSession('${w.id}')">+ Sessió</button><button class="btn btn-ghost" onclick="BM.editWorkshop('${w.id}')">Editar</button></div></div>`}).join('')||'<div class="empty-state">Encara no hi ha tallers</div>'}
 function renderExpenseRows(){const el=document.getElementById('bm-expenses');if(!el)return;el.innerHTML=`<div class="table-scroll"><table><thead><tr><th>Data</th><th>Concepte</th><th>Categoria</th><th>Import</th></tr></thead><tbody>${bm.expenses.slice().reverse().map(x=>`<tr><td>${fmtDate(x.date)}</td><td>${esc(x.description)}</td><td>${esc(x.category)}</td><td>${eur(x.amount)}</td></tr>`).join('')||'<tr><td colspan="4">Sense despeses</td></tr>'}</tbody></table></div>`}
 function renderPurchaseRows(){const el=document.getElementById('bm-purchases');if(!el)return;el.innerHTML=`<div class="table-scroll"><table><thead><tr><th>Data</th><th>Proveïdor</th><th>Número</th><th>Total</th></tr></thead><tbody>${bm.purchaseInvoices.slice().reverse().map(x=>`<tr><td>${fmtDate(x.date)}</td><td>${esc(x.supplier)}</td><td>${esc(x.number)}</td><td>${eur(x.total)}</td></tr>`).join('')||'<tr><td colspan="4">Sense compres</td></tr>'}</tbody></table></div>`}
-function renderCashRows(){const el=document.getElementById('bm-cash');if(!el)return;el.innerHTML=`<div class="table-scroll"><table><thead><tr><th>Data</th><th>Concepte</th><th>Tipus</th><th>Import</th></tr></thead><tbody>${bm.cash.slice().reverse().map(x=>`<tr><td>${fmtDate(x.date)}</td><td>${esc(x.description)}</td><td>${x.type==='in'?'Entrada':'Sortida'}</td><td>${eur(x.amount)}</td></tr>`).join('')||'<tr><td colspan="4">Sense moviments</td></tr'}</tbody></table></div>`}
+function renderCashRows(){const el=document.getElementById('bm-cash');if(!el)return;el.innerHTML=`<div class="table-scroll"><table><thead><tr><th>Data</th><th>Concepte</th><th>Tipus</th><th>Import</th></tr></thead><tbody>${bm.cash.slice().reverse().map(x=>`<tr><td>${fmtDate(x.date)}</td><td>${esc(x.description)}</td><td>${x.type==='in'?'Entrada':'Sortida'}</td><td>${eur(x.amount)}</td></tr>`).join('')||'<tr><td colspan="4">Sense moviments</td></tr>'}</tbody></table></div>`}
 function formModal(title,body,save){let old=document.getElementById('bmModal');if(old)old.remove();const d=document.createElement('div');d.className='modal-backdrop open';d.id='bmModal';d.innerHTML=`<div class="modal" style="max-width:680px;max-height:90vh;overflow:auto"><h2>${title}</h2>${body}<div class="modal-actions"><button class="btn btn-ghost" onclick="BM.closeModal()">Cancel·lar</button><button class="btn btn-primary" id="bmSave">Guardar</button></div></div>`;document.body.appendChild(d);d.querySelector('#bmSave').onclick=save}
 function newClient(existing){const c=existing||{};formModal(existing?'Editar client':'Nou client',`<div class="field"><label>Nom / empresa</label><input id="fName" value="${esc(c.name)}"></div><div class="row"><div class="field"><label>NIF/CIF</label><input id="fNif" value="${esc(c.nif)}"></div><div class="field"><label>Email</label><input id="fEmail" value="${esc(c.email)}"></div></div><div class="field"><label>Adreça</label><input id="fAddress" value="${esc(c.address)}"></div><div class="row"><div class="field"><label>CP</label><input id="fPostal" value="${esc(c.postalCode)}"></div><div class="field"><label>Ciutat</label><input id="fCity" value="${esc(c.city)}"></div></div>`,()=>{const o={id:c.id||uid('cli'),name:document.getElementById('fName').value.trim(),nif:document.getElementById('fNif').value.trim(),email:document.getElementById('fEmail').value.trim(),address:document.getElementById('fAddress').value.trim(),postalCode:document.getElementById('fPostal').value.trim(),city:document.getElementById('fCity').value.trim()};if(!o.name)return toast('Falta el nom');const ix=bm.customers.findIndex(x=>x.id===o.id);if(ix>=0)bm.customers[ix]=o;else bm.customers.push(o);saveBM();closeModal();renderBM()})}
 function newInvoice(existing){const inv=existing||{};const lines=inv.lines||[{description:'',qty:1,price:0,vat:bm.company.defaultVat}];const sif=inv.sifApplicable!==undefined?inv.sifApplicable:bm.company.sifDefaultApplicable!==false;const vatTreatment=inv.vatTreatment||'subjecta';formModal(inv.id?'Editar factura':'Nova factura',`<div class="row"><div class="field"><label>Client</label><select id="fClient"><option value="">Client particular</option>${bm.customers.map(c=>`<option value="${c.id}" ${c.id===inv.customerId?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div><div class="field"><label>Data</label><input id="fDate" type="date" value="${inv.date||today()}"></div></div><div class="field"><label>Concepte / línies (descripció | quantitat | preu | IVA%)</label><textarea id="fLines" style="min-height:130px">${lines.map(l=>`${l.description} | ${l.qty} | ${l.price} | ${l.vat}`).join('\n')}</textarea></div><div class="row"><div class="field"><label>Tractament IVA</label><select id="fVatTreatment"><option value="subjecta" ${vatTreatment==='subjecta'?'selected':''}>Subjecta</option><option value="exempta" ${vatTreatment==='exempta'?'selected':''}>Exempta</option><option value="no_sujeta" ${vatTreatment==='no_sujeta'?'selected':''}>No subjecta</option></select></div><div class="field"><label>Sistema de facturació</label><select id="fSif" onchange="BM.toggleSifFields()"><option value="true" ${sif?'selected':''}>Incloure a VERI*FACTU</option><option value="false" ${!sif?'selected':''}>Fora de l'àmbit RRSIF</option></select></div></div><div id="sifReasonBox" class="field" style="display:${sif?'none':'block'}"><label>Motiu documentat de fora d'àmbit</label><select id="fSifReason"><option value="">Selecciona un motiu</option><option value="no_factura_obligatoria">No existeix obligació d'expedir factura</option><option value="operacio_exclosa_rssif">Operació exclosa de l'àmbit objectiu del RRSIF</option><option value="sii">Obligat al SII</option><option value="altre">Altre motiu justificat</option></select><div class="small muted">No utilitzis aquesta opció només perquè l'operació sigui exempta o no subjecta a IVA: aquestes operacions poden continuar havent-se de registrar si existeix obligació de factura.</div></div><div class="field"><label>Notes</label><textarea id="fNotes">${esc(inv.notes||'')}</textarea></div><div class="small muted">Una factura dins de VERI*FACTU generarà el registre de facturació, encadenament i estat de remissió. El programa no marcarà com enviada una factura fins que l'AEAT n'hagi confirmat la remissió.</div>`,()=>{const customer=bm.customers.find(c=>c.id===document.getElementById('fClient').value);const parsed=document.getElementById('fLines').value.split('\n').map(x=>x.trim()).filter(Boolean).map(x=>{const a=x.split('|').map(y=>y.trim());return {description:a[0]||'',qty:+a[1]||1,price:+a[2]||0,vat:VAT.includes(+a[3])?+a[3]:bm.company.defaultVat}});if(!parsed.length)return toast('Afegeix almenys una línia');const id=inv.id||uid('inv');const number=inv.number||`${bm.company.invoicePrefix||'F'}-${new Date().getFullYear()}-${String(bm.company.invoiceNext++).padStart(4,'0')}`;const subtotal=parsed.reduce((s,l)=>s+l.qty*l.price,0);const tax=parsed.reduce((s,l)=>s+l.qty*l.price*l.vat/100,0);const sifApplicable=document.getElementById('fSif').value==='true';const sifReason=sifApplicable?'':document.getElementById('fSifReason').value;if(inv.verifactuRecordId&&inv.sifApplicable!==sifApplicable)return toast('No es pot canviar l’àmbit VERI*FACTU d’una factura que ja té registre de facturació. Crea una rectificativa si cal.');if(!sifApplicable&&!sifReason)return toast('Indica el motiu de fora d\'àmbit');const o={id,number,date:document.getElementById('fDate').value,customerId:customer?.id||'',customerName:customer?.name||'Client particular',customer:customer||null,lines:parsed,subtotal,tax,total:subtotal+tax,vatTreatment:document.getElementById('fVatTreatment').value,sifApplicable,sifReason,notes:document.getElementById('fNotes').value,status:inv.status||'emesa',createdAt:inv.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),verifactuRecordId:inv.verifactuRecordId||'',verifactuStatus:inv.verifactuStatus||'no_generat',verifactuHash:inv.verifactuHash||''};const ix=bm.invoices.findIndex(x=>x.id===id);if(ix>=0){if(inv.verifactuStatus==='accepted'&&JSON.stringify(inv.lines)!==JSON.stringify(o.lines))return toast('Una factura VERI*FACTU acceptada no es pot editar; crea una rectificativa.');bm.invoices[ix]=o}else bm.invoices.push(o);if(sifApplicable&&!o.verifactuRecordId)createVerifactuRecord(o);closeModal();renderBM();toast(`Factura ${number} guardada`);ensureInvoicePDF(o).then(()=>{saveBM();renderBM()})})}
@@ -2593,7 +2642,8 @@ function exportData(){const blob=new Blob([JSON.stringify(bm,null,2)],{type:'app
 function importData(ev){const f=ev.target.files&&ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.company||!x.invoices)throw Error('Fitxer no compatible');bm=Object.assign(def(),x);saveBM();renderBM();toast('Gestió restaurada')}catch(e){toast('Fitxer no vàlid: '+e.message)}};r.readAsText(f);ev.target.value=''}
 function quickSave(){saveBM();toast('Gestió guardada al dispositiu')}
 async function syncAll(){if(!window.settings?.scriptUrl && typeof settings==='undefined'){toast('Configura primer Google Sheets');return}const url=(typeof settings!=='undefined'&&settings.scriptUrl)||'';if(!url){toast('Configura primer Google Sheets');return}const payload={action:'syncBusiness',eventId:uid('bm'),timestamp:new Date().toISOString(),deviceId:window.deviceId||'',deviceName:window.deviceName||'',business:bm};try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});const j=await r.json();if(j.status==='ok'){bm.pending=[];saveBM();toast('✓ Gestió sincronitzada a Sheets/Drive')}else throw Error(j.message||'Error')}catch(e){bm.pending.push({payload,error:e.message,ts:new Date().toISOString()});saveBM();toast('📴 Guardat al mòbil; sync pendent')}}
-window.BM={openBusiness,renderBM,newClient,editClient,newInvoice,editInvoice,newExpense,newPurchase,newCash,newWorkshop,editWorkshop,addWorkshopSession,saveCompany,openShop,closeShop,invoiceActions,downloadInvoice,shareInvoice,exportInvoicesCSV,quickSave,exportData,importData,syncAll,shopSale,shopCost,shopCalcAdd,shopCalcRender,shopCalcClear,shopCalcCheckout,shopCalcCustom,saveTaxProfile,saveSifMode,saveSifDefault,toggleSifFields,exportVerifactuCSV,markPendingForReview,exportFiscalCSV,closeModal:()=>document.getElementById('bmModal')?.remove(),renderInvoiceRows};
+window.BM={openBusiness,openBusinessTab,renderBM,newClient,editClient,newInvoice,editInvoice,newExpense,newPurchase,newCash,newWorkshop,editWorkshop,addWorkshopSession,saveCompany,openShop,closeShop,invoiceActions,downloadInvoice,shareInvoice,exportInvoicesCSV,quickSave,exportData,importData,syncAll,shopSale,shopCost,shopCalcAdd,shopCalcRender,shopCalcClear,shopCalcCheckout,shopCalcCustom,saveTaxProfile,saveSifMode,saveSifDefault,toggleSifFields,exportVerifactuCSV,markPendingForReview,exportFiscalCSV,closeModal:()=>document.getElementById('bmModal')?.remove(),renderInvoiceRows};
+window.addEventListener('load',()=>{try{const v=document.getElementById('appVersionSelect');if(v)v.value='V10.7';}catch(e){}});
 window.addEventListener('load',ensureUI);document.addEventListener('DOMContentLoaded',ensureUI);
 })();
 

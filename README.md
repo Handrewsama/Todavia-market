@@ -1,3 +1,1 @@
-Todavía Market Manager V10.6
-
-Revisió completa de facturació: numeració segura, IVA exempt/no subjecte, retenció IRPF, PDF, CSV, VERI*FACTU, sincronització i accés directe a Facturació.
+Todavía Market Manager V10.7 — navegació robusta de Gestió negoci, Botiga, Tallers i Facturació; versió visible V10.7 i actualització de Service Worker.
